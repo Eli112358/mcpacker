@@ -7,7 +7,7 @@ import json
 class DataPacker(DataPack):
     def __init__(self, name, description):
         super().__init__(name, description)
-        data_file = f'src/{self.name}.json'
+        data_file = f'data/{self.name}.json'
         try:
             with open(data_file) as json_data:
                 self.data = json.load(json_data)
