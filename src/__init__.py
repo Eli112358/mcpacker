@@ -17,8 +17,8 @@ class DataPacker(DataPack):
         return f'{self.name}_{tag}'
     def set(self, path, value, vanilla = False):
         this_path = resolve(path, self)
-        if vanilla:
-            this_path = resolve(path)
+        if ':' in path:
+            this_path = path
         self[this_path] = value
     def require(self, names):
         self.dependancies = {}
@@ -27,7 +27,7 @@ class DataPacker(DataPack):
     def copy_loot_table(self, path):
         for name, pack in self.dependancies.items():
             if path in pack and not path in self['minecraft'].loot_tables:
-                self.set(path, copy.deepcopy(pack[path]), True)
+                self.set(f'minecraft:{path}', copy.deepcopy(pack[path]))
         return self['minecraft'].loot_tables[path]
     def add_pool(self, path, pool):
         self.copy_loot_table(path).pools.append(pool)
