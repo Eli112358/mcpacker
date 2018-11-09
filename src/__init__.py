@@ -1,8 +1,13 @@
 from mcpack import (DataPack, Advancement, Recipe)
 from mcpacker.functions import *
 from mcpacker.items import *
+from collections import namedtuple
 import copy
 import json
+
+# from https://gist.github.com/href/1319371
+def convert(dictionary):
+    return namedtuple('GenericDict', dictionary.keys())(**dictionary)
 
 class DataPacker(DataPack):
     def __init__(self, name, description):
@@ -10,7 +15,7 @@ class DataPacker(DataPack):
         data_file = f'data/{self.name}.json'
         try:
             with open(data_file) as json_data:
-                self.data = json.load(json_data)
+                self.data = convert(json.load(json_data))
         except Exception as e:
             print('Failed to load data file: ' + data_file)
     def tag(self, tag):
@@ -46,7 +51,7 @@ class DataPacker(DataPack):
         	}
         ))
     def recipes(self):
-        for path, data in self.data['recipes'].items():
+        for path, data in self.data.recipes.items():
             recipe = Recipe(
                 type = 'crafting_shapeless',
                 group = self.tag(path[:path.index('/')]),
