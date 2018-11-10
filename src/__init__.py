@@ -16,8 +16,13 @@ class DataPacker(DataPack):
         try:
             with open(data_file) as json_data:
                 self.data = convert(json.load(json_data))
-        except Exception as e:
-            print('Failed to load data file: ' + data_file)
+        # data file is optional: ignore error if it does not exist
+        except FileNotFoundError as fnf: pass
+        # but still catch JSONDecodeError
+        except json.decoder.JSONDecodeError as jde:
+            msg,line,col = jde.msg,jde.lineno,jde.colno
+            print(f'(in {data_file}) {msg}: line {line} column {col}')
+            exit()
     tag = lambda self, tag: f'{self.name}_{tag}'
     def set(self, path, value, vanilla = False):
         this_path = resolve(path, self)
@@ -87,6 +92,6 @@ class DataPacker(DataPack):
         def tick(): self.tick.set(self)
         def tick_1(): self.tick.set(self, self.objectives)
         try: functions() or load() or tick_1() or tick()
-        except Exception as e: pass
+        except AttributeError as e: pass
         Built().set(self)
         super().dump('out', overwrite=True)
