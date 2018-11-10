@@ -96,7 +96,7 @@ class DataPacker(DataPack):
         def functions(): self.functions.set(self)
         def load(): self.load.set(self)
         def tick(): self.tick.set(self)
-        def tick_1(): self.tick.set(self, self.objectives)
+        def tick_1(): self.tick.set(self, self.data.objectives)
         try: functions() or load() or tick_1() or tick()
         except AttributeError as e: pass
         Built().set(self)
