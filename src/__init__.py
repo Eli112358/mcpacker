@@ -18,8 +18,7 @@ class DataPacker(DataPack):
                 self.data = convert(json.load(json_data))
         except Exception as e:
             print('Failed to load data file: ' + data_file)
-    def tag(self, tag):
-        return f'{self.name}_{tag}'
+    tag = lambda self, tag: f'{self.name}_{tag}'
     def set(self, path, value, vanilla = False):
         this_path = resolve(path, self)
         if ':' in path:
