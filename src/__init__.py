@@ -5,9 +5,9 @@ from collections import namedtuple
 import copy
 import json
 
-# from https://gist.github.com/href/1319371
-def convert(dictionary):
-    return namedtuple('GenericDict', dictionary.keys())(**dictionary)
+# https://gist.github.com/Eli112358/8d15ffeeaeef2f20d36e122e464d1cc9
+# fork of https://gist.github.com/href/1319371
+convert = lambda dict: namedtuple('GenericDict', dict.keys())(**dict)
 
 class DataPacker(DataPack):
     def __init__(self, name, description):
