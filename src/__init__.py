@@ -83,21 +83,11 @@ class DataPacker(DataPack):
             self.set(path, recipe)
             self.set(f'recipes/{path}', advancement)
     def dump(self):
-        try:
-            self.load.set(self)
-        except Exception as e:
-            pass
-        try:
-            self.tick.set(self, self.objectives)
-        except Exception as e:
-            pass
-        try:
-            self.tick.set(self)
-        except Exception as e:
-            pass
-        try:
-            self.functions.set(self)
-        except Exception as e:
-            pass
+        def functions(): self.functions.set(self)
+        def load(): self.load.set(self)
+        def tick(): self.tick.set(self)
+        def tick_1(): self.tick.set(self, self.objectives)
+        try: functions() or load() or tick_1() or tick()
+        except Exception as e: pass
         Built().set(self)
         super().dump('out', overwrite=True)
