@@ -16,6 +16,12 @@ class DataPacker(DataPack):
         try:
             with open(data_file) as json_data:
                 self.data = convert(json.load(json_data))
+            def depend(): self.require(self.data.dependancies)
+            def functions(): self.functions = Functions(self.data.functions)
+            def load(): self.load = Load(self.data.objectives)
+            def tick(): self.tick = Tick()
+            def tick_1(): self.tick = Tick(self.data.objectives)
+            depend() or functions() or load() or tick_1() or tick()
         # data file is optional: ignore error if it does not exist
         except FileNotFoundError as fnf: pass
         # but still catch JSONDecodeError
