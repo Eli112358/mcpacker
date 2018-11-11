@@ -49,9 +49,11 @@ class SelfTaggedFunction(object):
     def __init__(self, pack, relpath, body = '', namespace = 'minecraft'):
         self.has_set = False
         self.pack = pack
+        self.relpath = relpath
+        self.namespace = namespace
         self.function = Function(body)
         self.fullpath = resolve(relpath, pack)
-        pack[resolve(relpath, None, namespace)] = FunctionTag([self.fullpath])
+        pack[resolve(relpath, None, namespace)] = FunctionTag()
     def add_text(self, text):
         self.function.body += text
     def add_lines(self, lines):
@@ -62,6 +64,7 @@ class SelfTaggedFunction(object):
     def set(self):
         if self.has_set: return
         self.pack[self.fullpath] = self.function
+        self.pack[self.namespace].function_tags[self.relpath].values.append(self.fullpath)
         self.has_set = True
 
 class Load(SelfTaggedFunction):
