@@ -27,10 +27,9 @@ class DataPacker(DataPack):
         except AttributeError: pass
         try: self.functions = Functions(self.data.functions)
         except AttributeError: pass
-        try: self.load = Load(self.data.objectives)
+        try: self.load = Load(self, self.data.objectives)
         except AttributeError: pass
-        try: self.tick = Tick(self.data.objectives)
-        except AttributeError: self.tick = Tick()
+        self.tick = Tick(self)
     tag = lambda self, tag: f'{self.name}_{tag}'
     def set(self, path, value, vanilla = False):
         this_path = resolve(path, self)
@@ -96,10 +95,10 @@ class DataPacker(DataPack):
             self.set(f'recipes/{path}', advancement)
     def dump(self):
         def functions(): self.functions.set(self)
-        def load(): self.load.set(self)
-        def tick(): self.tick.set(self)
-        def tick_1(): self.tick.set(self, self.data.objectives)
+        def load(): self.load.set()
+        def tick(): self.tick.set()
+        def tick_1(): self.tick.set(self.data.objectives)
         try: functions() or load() or tick_1() or tick()
         except AttributeError: pass
-        Built().set(self)
+        Built(self).set()
         super().dump('out', overwrite=True)

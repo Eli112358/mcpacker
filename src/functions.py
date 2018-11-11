@@ -40,57 +40,54 @@ class Functions(object):
         # TODO: for warps
         pass
     def set(self, pack):
-        if self.has_set:
-            return
+        if self.has_set: return
         for relpath, func in self.functions.items():
             pack[resolve(relpath, pack)] = func
         self.has_set = True
 
-class SelfTaggedFunction(Function):
-    def __init__(self, relpath, body = ''):
-        super().__init__(body)
+class SelfTaggedFunction(object):
+    def __init__(self, pack, relpath, body = '', namespace = 'minecraft'):
         self.has_set = False
-        self.relpath = relpath
+        self.pack = pack
+        self.function = Function(body)
+        self.fullpath = resolve(relpath, pack)
+        pack[resolve(relpath, None, namespace)] = FunctionTag([self.fullpath])
     def add_text(self, text):
-        self.body += text
+        self.function.body += text
     def add_lines(self, lines):
         self.add_text('\n'.join(lines) + '\n')
     def add_indexed(self, size, text):
         for i in range(size):
             self.add_text(text.replace('{i}', f'{i}'))
-    def set(self, pack, namespace = 'minecraft'):
-        if self.has_set:
-            return
-        pack[resolve(self.relpath, pack)] = Function(self.body)
-        pack[resolve(self.relpath, None, namespace)] = FunctionTag([resolve(self.relpath, pack)])
+    def set(self):
+        if self.has_set: return
+        self.pack[self.fullpath] = self.function
         self.has_set = True
 
 class Load(SelfTaggedFunction):
-    def __init__(self, objectives = []):
-        super().__init__('load')
+    def __init__(self, pack, objectives = []):
+        super().__init__(pack, 'load')
         for obj in objectives:
-            self.body += f'scoreboard objectives add {obj}\n'
+            self.function.body += f'scoreboard objectives add {obj}\n'
 
 class Tick(SelfTaggedFunction):
-    def __init__(self, body = ''):
-        super().__init__('tick', body)
-    def set(self, pack, objectives = []):
+    def __init__(self, pack, body = ''):
+        super().__init__(pack, 'tick', body)
+    def set(self, objectives = []):
         names = []
         for obj in objectives:
             if obj.split(' ')[1] == 'trigger':
                 names.append(obj.split(' ')[0])
         def add_lines(operation):
             for name in names:
-                self.body += f'scoreboard players {operation.replace("{name}", name)}\n'
+                add_text(f'scoreboard players {operation.replace("{name}", name)}\n')
         add_lines('set @a[scores={{name}=1..}] {name} 0')
         add_lines('add @a {name} 0')
         add_lines('enable @a {name}')
-        super().set(pack)
+        super().set()
 
 class Built(SelfTaggedFunction):
-    def __init__(self):
-        super().__init__('built')
-    def set(self, pack):
+    def __init__(self, pack):
         today = datetime.today()
         date_str = today.strftime('%Y-%m-%d')
         day_of_year = today.timetuple().tm_yday
@@ -104,5 +101,4 @@ class Built(SelfTaggedFunction):
                 'color': 'white'
             }
         ])
-        self.body = f'tellraw @s {message}'
-        super().set(pack, 'main')
+        super().__init__(pack, 'built', f'tellraw @s {message}', 'main')
