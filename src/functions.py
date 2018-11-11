@@ -83,7 +83,7 @@ class Tick(SelfTaggedFunction):
                 names.append(obj.split(' ')[0])
         def add_lines(operation):
             for name in names:
-                add_text(f'scoreboard players {operation.replace("{name}", name)}\n')
+                self.add_text(f'scoreboard players {operation.replace("{name}", name)}\n')
         add_lines('set @a[scores={{name}=1..}] {name} 0')
         add_lines('add @a {name} 0')
         add_lines('enable @a {name}')
