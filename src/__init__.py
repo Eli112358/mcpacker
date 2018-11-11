@@ -16,12 +16,6 @@ class DataPacker(DataPack):
         try:
             with open(data_file) as json_data:
                 self.data = convert(json.load(json_data))
-            def depend(): self.require(self.data.dependancies)
-            def functions(): self.functions = Functions(self.data.functions)
-            def load(): self.load = Load(self.data.objectives)
-            def tick(): self.tick = Tick()
-            def tick_1(): self.tick = Tick(self.data.objectives)
-            depend() or functions() or load() or tick_1() or tick()
         # data file is optional: ignore error if it does not exist
         except FileNotFoundError as fnf: pass
         # but still catch JSONDecodeError
@@ -29,6 +23,14 @@ class DataPacker(DataPack):
             msg,line,col = jde.msg,jde.lineno,jde.colno
             print(f'(in {data_file}) {msg}: line {line} column {col}')
             exit()
+        try: self.require(self.data.dependancies)
+        except AttributeError: pass
+        try: self.functions = Functions(self.data.functions)
+        except AttributeError: pass
+        try: self.load = Load(self.data.objectives)
+        except AttributeError: pass
+        try: self.tick = Tick(self.data.objectives)
+        except AttributeError: self.tick = Tick()
     tag = lambda self, tag: f'{self.name}_{tag}'
     def set(self, path, value, vanilla = False):
         this_path = resolve(path, self)
@@ -98,6 +100,6 @@ class DataPacker(DataPack):
         def tick(): self.tick.set(self)
         def tick_1(): self.tick.set(self, self.data.objectives)
         try: functions() or load() or tick_1() or tick()
-        except AttributeError as e: pass
+        except AttributeError: pass
         Built().set(self)
         super().dump('out', overwrite=True)
