@@ -13,8 +13,8 @@ wood_types = [
     'dark_oak'
 ]
 
-def escape(str):
-    return str.replace('\\', '\\\\').replace('"', '\\"')
+escape = lambda s: s.replace('\\', '\\\\').replace('"', '\\"')
+flatten = lambda name: re.sup("_{2,}", ' ', re.sub("[ .,'\"\\/#!$%^&*;:{}=-`~()]", '_', name))
 def get_name(name):
     words = re.sub('[_ ]', ' ', name).split(' ')
     for i in range(len(words)):
