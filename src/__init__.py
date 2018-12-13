@@ -5,16 +5,13 @@ from collections import namedtuple
 import copy
 import json
 
-import namedtupled
-# from https://github.com/brennv/namedtupled
-
 class DataPacker(DataPack):
     def __init__(self, name, description):
         super().__init__(name, description)
         data_file = f'data/{self.name}.json'
         try:
             with open(data_file) as json_data:
-                self.data = namedtupled.map(json.load(json_data))
+                self.data = json.load(json_data)
         # data file is optional: ignore error if it does not exist
         except FileNotFoundError as fnf: pass
         # but still catch JSONDecodeError
@@ -22,11 +19,11 @@ class DataPacker(DataPack):
             msg,line,col = jde.msg,jde.lineno,jde.colno
             print(f'(in {data_file}) {msg}: line {line} column {col}')
             exit()
-        try: self.require(self.data.dependancies)
+        try: self.require(self.data['dependancies'])
         except AttributeError: pass
-        try: self.functions = Functions(self.data.functions)
+        try: self.functions = Functions(self.data['functions'])
         except AttributeError: pass
-        try: self.load = Load(self, self.data.objectives)
+        try: self.load = Load(self, self.data['objectives'])
         except AttributeError: pass
         self.tick = Tick(self)
     tag = lambda self, tag: f'{self.name}_{tag}'
@@ -48,20 +45,20 @@ class DataPacker(DataPack):
         self.copy_loot_table(path).pools.append(pool)
     def init_root_advancement(self, icon, description, background = 'stone'):
         self.set('root', Advancement(
-        	display = {
-        		'icon': get_ingredient(self, icon),
-        		'title': get_name(self.name),
+            display = {
+                'icon': get_ingredient(self, icon),
+                'title': get_name(self.name),
                 'description': description,
-        		'background': resolve(f'textures/blocks/{background}.png')
-        	},
-        	criteria = {
-        		'never': {
-        			'trigger': resolve('impossible')
-        		}
-        	}
+                'background': resolve(f'textures/blocks/{background}.png')
+            },
+            criteria = {
+                'never': {
+                    'trigger': resolve('impossible')
+                }
+            }
         ))
     def recipes(self):
-        for path, data in self.data.recipes.items():
+        for path, data in self.data['recipes'].items():
             recipe = Recipe(
                 type = 'crafting_shapeless',
                 group = self.tag(path[:path.index('/')]),
@@ -71,21 +68,21 @@ class DataPacker(DataPack):
             item = path[path.index('/')+1:]
             advancement = Advancement(
                 parent = resolve('root', self),
-            	rewards = {'recipes': [resolve(path, self)]},
-            	display = {
+                rewards = {'recipes': [resolve(path, self)]},
+                display = {
                     'icon': get_ingredient(self, item),
-            		'title': f'Craftable {item}',
-            		'description': f'Craftable {item}',
-            		'show_toast': False,
-            		'announce_to_chat': False,
-            		'hidden': True
-            	},
-            	criteria = {
-            		'have_items': {
-            			'trigger': resolve('inventory_changed'),
-            			'conditions': {'items': []}
-            		}
-            	}
+                    'title': f'Craftable {item}',
+                    'description': f'Craftable {item}',
+                    'show_toast': False,
+                    'announce_to_chat': False,
+                    'hidden': True
+                },
+                criteria = {
+                    'have_items': {
+                        'trigger': resolve('inventory_changed'),
+                        'conditions': {'items': []}
+                    }
+                }
             )
             for item in data[1]:
                 recipe.ingredients.append(get_ingredient(self, item))
@@ -96,7 +93,7 @@ class DataPacker(DataPack):
         def functions(): self.functions.set(self)
         def load(): self.load.set()
         def tick(): self.tick.set()
-        def tick_1(): self.tick.set(self.data.objectives)
+        def tick_1(): self.tick.set(self.data['objectives'])
         try: functions() or load() or tick_1() or tick()
         except AttributeError: pass
         Built(self).set()
