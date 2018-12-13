@@ -5,9 +5,8 @@ from collections import namedtuple
 import copy
 import json
 
-# https://gist.github.com/Eli112358/8d15ffeeaeef2f20d36e122e464d1cc9
-# fork of https://gist.github.com/href/1319371
-convert = lambda dict: namedtuple('GenericDict', dict.keys())(**dict)
+import namedtupled
+# from https://github.com/brennv/namedtupled
 
 class DataPacker(DataPack):
     def __init__(self, name, description):
@@ -15,7 +14,7 @@ class DataPacker(DataPack):
         data_file = f'data/{self.name}.json'
         try:
             with open(data_file) as json_data:
-                self.data = convert(json.load(json_data))
+                self.data = namedtupled.map(json.load(json_data))
         # data file is optional: ignore error if it does not exist
         except FileNotFoundError as fnf: pass
         # but still catch JSONDecodeError
