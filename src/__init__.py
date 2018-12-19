@@ -88,7 +88,9 @@ class DataPacker(DataPack):
                 recipe.ingredients.append(get_ingredient(self, item))
                 advancement.criteria['have_items']['conditions']['items'].append(get_ingredient(self, path[path.index('/')+1:]))
             self.set(path, recipe)
-            self.set(f'recipes/{path}', advancement)
+            if 'recipe_advancement' in self.data:
+                if self.data['recipe_advancement']:
+                    self.set(f'recipes/{path}', advancement)
     def dump(self):
         def functions(): self.functions.set(self)
         def load(): self.load.set()
