@@ -20,11 +20,11 @@ class DataPacker(DataPack):
             print(f'(in {data_file}) {msg}: line {line} column {col}')
             exit()
         try: self.require(self.data['dependancies'])
-        except AttributeError: pass
+        except KeyError: pass
         try: self.functions = Functions(self.data['functions'])
-        except AttributeError: pass
+        except KeyError: pass
         try: self.load = Load(self, self.data['objectives'])
-        except AttributeError: pass
+        except KeyError: pass
         self.tick = Tick(self)
     tag = lambda self, tag: f'{self.name}_{tag}'
     def set(self, path, value, vanilla = False):
