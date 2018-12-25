@@ -26,23 +26,22 @@ class DataPacker(DataPack):
         try: self.load = Load(self, self.data['objectives'])
         except KeyError: pass
         self.tick = Tick(self)
-    tag = lambda self, tag: f'{self.name}_{tag}'
-    def set(self, path, value, vanilla = False):
-        this_path = resolve(path, self)
-        if ':' in path:
-            this_path = path
-        self[this_path] = value
-    def require(self, names):
-        self.dependancies = {}
-        for name in names:
-            self.dependancies[name] = DataPack.load(f'out/{name}').namespaces['minecraft'].loot_tables
+    def add_pool(self, path, pool):
+        self.copy_loot_table(path).pools.append(pool)
     def copy_loot_table(self, path):
         for name, pack in self.dependancies.items():
             if path in pack and not path in self['minecraft'].loot_tables:
                 self.set(f'minecraft:{path}', copy.deepcopy(pack[path]))
         return self['minecraft'].loot_tables[path]
-    def add_pool(self, path, pool):
-        self.copy_loot_table(path).pools.append(pool)
+    def dump(self):
+        def functions(): self.functions.set(self)
+        def load(): self.load.set()
+        def tick(): self.tick.set()
+        def tick_1(): self.tick.set(self.data['objectives'])
+        try: functions() or load() or tick_1() or tick()
+        except AttributeError: pass
+        Built(self).set()
+        super().dump('out', overwrite=True)
     def init_root_advancement(self, icon, description, background = 'stone'):
         self.set('root', Advancement(
             display = {
@@ -91,12 +90,13 @@ class DataPacker(DataPack):
             if 'recipe_advancement' in self.data:
                 if self.data['recipe_advancement']:
                     self.set(f'recipes/{path}', advancement)
-    def dump(self):
-        def functions(): self.functions.set(self)
-        def load(): self.load.set()
-        def tick(): self.tick.set()
-        def tick_1(): self.tick.set(self.data['objectives'])
-        try: functions() or load() or tick_1() or tick()
-        except AttributeError: pass
-        Built(self).set()
-        super().dump('out', overwrite=True)
+    def require(self, names):
+        self.dependancies = {}
+        for name in names:
+            self.dependancies[name] = DataPack.load(f'out/{name}').namespaces['minecraft'].loot_tables
+    def set(self, path, value, vanilla = False):
+        this_path = resolve(path, self)
+        if ':' in path:
+            this_path = path
+        self[this_path] = value
+    tag = lambda self, tag: f'{self.name}_{tag}'
