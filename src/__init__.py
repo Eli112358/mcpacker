@@ -8,17 +8,7 @@ import json
 class DataPacker(DataPack):
     def __init__(self, name, description):
         super().__init__(name, description)
-        data_file = f'data/{self.name}.json'
-        try:
-            with open(data_file) as json_data:
-                self.data = json.load(json_data)
-        # data file is optional: ignore error if it does not exist
-        except FileNotFoundError as fnf: pass
-        # but still catch JSONDecodeError
-        except json.decoder.JSONDecodeError as jde:
-            msg,line,col = jde.msg,jde.lineno,jde.colno
-            print(f'(in {data_file}) {msg}: line {line} column {col}')
-            exit()
+        self.data = get_data()
         try: self.require(self.data['dependancies'])
         except KeyError: pass
         try: self.functions = Functions(self.data['functions'])
@@ -42,6 +32,18 @@ class DataPacker(DataPack):
         except AttributeError: pass
         Built(self).set()
         super().dump('out', overwrite=True)
+    def get_data(self, name = pack.name):
+        data_file = f'data/{name}.json'
+        try:
+            with open(data_file) as json_data:
+                return json.load(json_data)
+        # data file is optional: ignore error if it does not exist
+        except FileNotFoundError as fnf: pass
+        # but still catch JSONDecodeError
+        except json.decoder.JSONDecodeError as jde:
+            msg,line,col = jde.msg,jde.lineno,jde.colno
+            print(f'(in {data_file}) {msg}: line {line} column {col}')
+            exit()
     def init_root_advancement(self, icon, description, background = 'stone'):
         self.set('root', Advancement(
             display = {
