@@ -29,6 +29,7 @@ class DataPacker(DataPack):
         def tick_1(): self.tick.set(self.data['objectives'])
         try: functions() or load() or tick_1() or tick()
         except AttributeError: pass
+        except KeyError: pass
         Built(self).set()
         super().dump('out', overwrite=True)
     def get_data(self, name = pack.name):
