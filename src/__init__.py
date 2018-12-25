@@ -8,7 +8,7 @@ import json
 class DataPacker(DataPack):
     def __init__(self, name, description):
         super().__init__(name, description)
-        self.data = get_data()
+        self.data = self.get_data(self.name)
         def dependancies(): self.require(self.data['dependancies'])
         def functions(): self.functions = Functions(self.data['functions'])
         def load(): self.load = Load(self, self.data['objectives'])
@@ -32,7 +32,7 @@ class DataPacker(DataPack):
         except KeyError: pass
         Built(self).set()
         super().dump('out', overwrite=True)
-    def get_data(self, name = pack.name):
+    def get_data(self, name):
         data_file = f'data/{name}.json'
         try:
             with open(data_file) as json_data:
