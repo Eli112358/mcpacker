@@ -9,11 +9,10 @@ class DataPacker(DataPack):
     def __init__(self, name, description):
         super().__init__(name, description)
         self.data = get_data()
-        try: self.require(self.data['dependancies'])
-        except KeyError: pass
-        try: self.functions = Functions(self.data['functions'])
-        except KeyError: pass
-        try: self.load = Load(self, self.data['objectives'])
+        def dependancies(): self.require(self.data['dependancies'])
+        def functions(): self.functions = Functions(self.data['functions'])
+        def load(): self.load = Load(self, self.data['objectives'])
+        try: dependancies() or functions() or load()
         except KeyError: pass
         self.tick = Tick(self)
     def add_pool(self, path, pool):
