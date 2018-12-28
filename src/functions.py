@@ -61,10 +61,12 @@ class SelfTaggedFunction(object):
     def add_indexed(self, size, text):
         for i in range(size):
             self.add_text(text.replace('{i}', f'{i}'))
+    def add_to_tag(self, path):
+        self.pack[self.namespace].function_tags[self.relpath].values.append(path)
     def set(self):
         if self.has_set: return
         self.pack[self.fullpath] = self.function
-        self.pack[self.namespace].function_tags[self.relpath].values.append(self.fullpath)
+        self.add_to_tag(self.fullpath)
         self.has_set = True
 
 class Load(SelfTaggedFunction):
