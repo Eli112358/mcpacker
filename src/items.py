@@ -13,6 +13,7 @@ wood_types = [
     'dark_oak'
 ]
 
+quote = lambda s: f'"{s}"'
 escape = lambda s: s.replace('\\', '\\\\').replace('"', '\\"')
 flatten = lambda name: re.sup("_{2,}", ' ', re.sub("[ .,'\"\\/#!$%^&*;:{}=-`~()]", '_', name))
 def get_name(name):
@@ -82,8 +83,7 @@ class ItemDisplay(NbtObject):
         for value in lore:
             self.lore.append([value])
     def dump(self):
-        self.escaped_name = escape(f'"{self.custom_name}"')
-        self.values.append(f'Name:"{self.escaped_name}"')
+        self.values.append(f'Name:{quote(escape(quote(self.custom_name)))}')
         try:
             self.children.append(NbtList('Lore', '"{value[0]}"', self.lore))
         except AttributeError:
