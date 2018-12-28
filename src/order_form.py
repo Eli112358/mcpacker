@@ -69,11 +69,11 @@ class OrderForm(object):
         self.stages = [Stage(self.result, self.requirements[0:])]
         while not last(self.stages).complete:
             self.stages.append(last(self.stages).next())
-    def purchase(self, villager):
-        villager.trades.append(Trade(self.price, self.stages[0], Item('paper')))
     def completed(self, villager):
         villager.trades.append(last(self.stages).get_trade())
     def progress(self, villager):
         for stage in self.stages:
             if not stage.complete:
                 villager.trades.append(stage.get_trade())
+    def purchase(self, villager):
+        villager.trades.append(Trade(self.price, self.stages[0], Item('paper')))
