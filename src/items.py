@@ -28,11 +28,13 @@ def resolve(path, pack = None, namespace = 'minecraft'):
         pass
     return f'{namespace}:{path}'
 def get_ingredient(pack, name):
-    if name[0] != '#':
-        return {'item': resolve(name)}
-    if name[1] != '#':
-        return {'tag': resolve(name[1:])}
-    return {'tag': resolve(name[2:], pack)}
+    a,b = name[0]=='#',name[1]=='#'
+    cases = [                               # a b
+        {'item': resolve(name)},            # f f   'xyz'
+        {'tag': resolve(name[1:])},         # t f   '#xyz'
+        {'tag': resolve(name[2:], pack)}    # t t   '##xyz'
+    ]
+    return cases[b | (a << 1)]
 def get_tag_entry(pack, name):
     if name[1] == '#':
         return name.replace('##', f'#{pack.name}:')
@@ -78,16 +80,17 @@ class ItemDisplay(NbtObject):
         self.custom_name = custom_name
         if lore:
             self.set_lore(lore)
+        self.dumped = False
     def set_lore(self, lore):
         self.lore = []
         for value in lore:
             self.lore.append([value])
     def dump(self):
-        self.values.append(f'Name:{quote(escape(quote(self.custom_name)))}')
-        try:
-            self.children.append(NbtList('Lore', '"{value[0]}"', self.lore))
-        except AttributeError:
-            pass
+        if not self.dumped:
+            self.values.append(f'Name:{quote(escape(quote(self.custom_name)))}')
+            try: self.children.append(NbtList('Lore', '"{value[0]}"', self.lore))
+            except AttributeError: pass
+            self.dumped = True
         return super().dump()
 
 class Enchantments(NbtList):
