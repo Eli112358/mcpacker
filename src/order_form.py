@@ -17,12 +17,7 @@ def get_quantity(count):
         f'{stacks}x64',             # stacks > 0
         f'{stacks}x64 +{remainder}' # both > 0
     ]
-    case = 0
-    if remainder > 0:
-        case |= 1
-    if stacks > 0:
-        case |= 2
-    return cases[case]
+    return cases[((stacks > 0) << 1) | (remainder > 0)]
 
 class Stage(Item):
     def __init__(self, result, items):
