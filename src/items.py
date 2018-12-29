@@ -87,9 +87,8 @@ class ItemDisplay(NbtObject):
             self.lore.append([value])
     def dump(self):
         if not self.dumped:
-            self.values.append(f'Name:{quote(escape(quote(self.custom_name)))}')
-            try: self.children.append(NbtList('Lore', '"{value[0]}"', self.lore))
-            except AttributeError: pass
+            if self.custom_name: self.values.append(f'Name:{quote(escape(quote(self.custom_name)))}')
+            if self.lore: self.children.append(NbtList('Lore', '"{value[0]}"', self.lore))
             self.dumped = True
         return super().dump()
 
