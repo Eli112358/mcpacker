@@ -28,19 +28,28 @@ def resolve(path, pack = None, namespace = 'minecraft'):
         pass
     return f'{namespace}:{path}'
 def get_ingredient(pack, name):
-    a,b = name[0]=='#',name[1]=='#'
-    cases = [                               # a b
-        {'item': resolve(name)},            # f f   'xyz'
-        {'tag': resolve(name[1:])},         # t f   '#xyz'
-        {'tag': resolve(name[2:], pack)}    # t t   '##xyz'
-    ]
-    return cases[b | (a << 1)]
+    return Switch(2, (lambda i: name[i]=='#'), [
+        {'item': resolve(name)},
+        {'tag': resolve(name[1:])},
+        {'tag': resolve(name[2:], pack)}
+    ]).dump()
 def get_tag_entry(pack, name):
-    if name[1] == '#':
-        return name.replace('##', f'#{pack.name}:')
-    if name[0] == '#':
-        return '#' + resolve(name[1:])
-    return resolve(name)
+    return Switch(2, (lambda i: name[i]=='#'), [
+        resolve(name),
+        ('#' + resolve(name[1:])),
+        name.replace('##', f'#{pack.name}:')
+    ]).dump()
+
+class Switch(object):
+    def __init__(self, max, check, cases):
+        self.max = max
+        self.check = check
+        self.cases = cases
+    def dump(self):
+        case = 0
+        for i in range(self.max):
+            case += self.check(i)
+        return self.cases[case]
 
 class NbtList(object):
     def __init__(self, name, pattern = '', data = []):
