@@ -16,6 +16,7 @@ class DataPacker(DataPack):
         self.functions = Functions(try_data('functions'))
         self.load = Load(self, try_data('objectives'))
         self.tick = Tick(self)
+        self.tag = GlobalName(self.name)
     def add_pool(self, path, pool):
         self.copy_loot_table(path).pools.append(pool)
     def copy_loot_table(self, path):
@@ -102,4 +103,11 @@ class DataPacker(DataPack):
         if ':' in path:
             this_path = path
         self[this_path] = value
-    tag = lambda self, tag: f'{self.name}_{tag}'
+
+class GlobalName(object):
+    def __init__(self, name):
+        self.name = name
+    def __str__(self):
+        return self.name
+    def suffix(self, suffix):
+        return self.__class__(f'{self.name}_{suffix}')
