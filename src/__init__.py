@@ -9,7 +9,7 @@ class DataPacker(DataPack):
     def __init__(self, name, description):
         super().__init__(name, description)
         self.data = self.get_data(self.name)
-        self.require(self.__try_data('dependancies'))
+        self.__load_dependancies()
         self.functions = Functions(self.__try_data('functions'))
         self.load = Load(self, self.__try_data('objectives'))
         self.tick = Tick(self)
@@ -20,9 +20,10 @@ class DataPacker(DataPack):
     def add_pool(self, path, pool):
         self.copy_loot_table(path).pools.append(pool)
     def copy_loot_table(self, path):
-        for name, pack in self.dependancies.items():
-            if path in pack and not path in self['minecraft'].loot_tables:
-                self.set(f'minecraft:{path}', copy.deepcopy(pack[path]))
+        for name, pack in self.packs.items():
+            tables = pack['minecraft'].loot_tables
+            if path in tables and not path in self['minecraft'].loot_tables:
+                self.set(f'minecraft:{path}', copy.deepcopy(tables[path]))
         return self['minecraft'].loot_tables[path]
     def dump(self):
         def functions(): self.functions.set(self)
@@ -94,10 +95,11 @@ class DataPacker(DataPack):
             if 'recipe_advancement' in self.data:
                 if self.data['recipe_advancement']:
                     self.set(f'recipes/{path}', advancement)
-    def require(self, names):
-        self.dependancies = {}
-        for name in names:
-            self.dependancies[name] = DataPack.load(f'out/{name}').namespaces['minecraft'].loot_tables
+    def __load_dependancies(self):
+        data = self.__try_data('dependancies')
+        self.packs = {}
+        for name in data:
+            self.packs[name] = self.__class__.load(f'out/{name}')
     def set(self, path, value, vanilla = False):
         this_path = resolve(path, self)
         if ':' in path:
