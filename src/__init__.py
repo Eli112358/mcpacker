@@ -6,14 +6,13 @@ import copy
 import json
 
 class DataPacker(DataPack):
-    def __init__(self, name, description):
+    def __init__(self, name, description, auto_process_data = True):
         super().__init__(name, description)
         self.data = self.get_data(self.name)
-        self.__load_dependancies()
-        self.functions = Functions(self.__try_data('functions'))
-        self.load = Load(self, self.__try_data('objectives'))
-        self.tick = Tick(self)
         self.tag = GlobalName(self.name)
+        self.tick = Tick(self)
+        if auto_process_data:
+            self.process_data()
     def add_pool(self, path, pool):
         self.copy_loot_table(path).pools.append(pool)
     def copy_loot_table(self, path):
@@ -58,6 +57,10 @@ class DataPacker(DataPack):
                 }
             }
         ))
+    def process_data(self):
+        self.__load_dependancies()
+        self.functions = Functions(self.__try_data('functions'))
+        self.load = Load(self, self.__try_data('objectives'))
     def recipes(self):
         for path, data in self.data['recipes'].items():
             recipe = Recipe(
