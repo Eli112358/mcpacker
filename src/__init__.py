@@ -14,9 +14,6 @@ class DataPacker(DataPack):
         self.load = Load(self, self.__try_data('objectives'))
         self.tick = Tick(self)
         self.tag = GlobalName(self.name)
-    def __try_data(self, name):
-        try: return self.data[name]
-        except KeyError: return []
     def add_pool(self, path, pool):
         self.copy_loot_table(path).pools.append(pool)
     def copy_loot_table(self, path):
@@ -95,16 +92,19 @@ class DataPacker(DataPack):
             if 'recipe_advancement' in self.data:
                 if self.data['recipe_advancement']:
                     self.set(f'recipes/{path}', advancement)
-    def __load_dependancies(self):
-        data = self.__try_data('dependancies')
-        self.packs = {}
-        for name in data:
-            self.packs[name] = self.__class__.load(f'out/{name}')
     def set(self, path, value, vanilla = False):
         this_path = resolve(path, self)
         if ':' in path:
             this_path = path
         self[this_path] = value
+    def __load_dependancies(self):
+        data = self.__try_data('dependancies')
+        self.packs = {}
+        for name in data:
+            self.packs[name] = self.__class__.load(f'out/{name}')
+    def __try_data(self, name):
+        try: return self.data[name]
+        except KeyError: return []
 
 class GlobalName(object):
     def __init__(self, name):
