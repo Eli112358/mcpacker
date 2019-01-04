@@ -1,7 +1,6 @@
 from mcpack import (DataPack, Advancement, Recipe)
 from mcpacker.functions import *
 from mcpacker.items import *
-from collections import namedtuple
 import copy
 import json
 
@@ -65,7 +64,7 @@ class DataPacker(DataPack):
         for path, data in self.data['recipes'].items():
             recipe = Recipe(
                 type = 'crafting_shapeless',
-                group = self.tag(path[:path.index('/')]),
+                group = self.tag.suffix(path[:path.index('/')]),
                 result = {'item': resolve(data[0][1]), 'count': data[0][0]},
                 ingredients = []
             )
