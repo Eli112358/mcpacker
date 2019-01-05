@@ -21,18 +21,20 @@ colors = [
     'yellow'
 ]
 
+join = lambda lines: '\n'.join(lines)
+
 class Functions(object):
     def __init__(self, relpaths):
         self.has_set = False
         self.functions = {}
         for relpath in relpaths:
             self.add(relpath)
-    def add(self, relpath, body = ''):
-        self.functions[relpath] = Function(body)
+    def add(self, relpath, body = ['']):
+        self.functions[relpath] = Function(join(body))
     def add_text(self, relpath, text):
         self.functions[relpath].body += text
     def add_lines(self, relpath, lines):
-        self.add_text(relpath, '\n'.join(lines) + '\n')
+        self.add_text(relpath, join(lines) + '\n')
     def add_indexed(self, relpath, size, text):
         for i in range(size):
             self.add_text(relpath, text.replace('{i}', f'{i}'))
@@ -57,7 +59,7 @@ class SelfTaggedFunction(object):
     def add_text(self, text):
         self.function.body += text
     def add_lines(self, lines):
-        self.add_text('\n'.join(lines) + '\n')
+        self.add_text(join(lines) + '\n')
     def add_indexed(self, size, text):
         for i in range(size):
             self.add_text(text.replace('{i}', f'{i}'))
