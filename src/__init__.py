@@ -103,7 +103,7 @@ class DataPacker(DataPack):
         data = self.__try_data('dependancies')
         self.packs = {}
         for name in data:
-            self.packs[name] = self.__class__.load(f'out/{name}')
+            self.packs[name] = DataPack.load(f'out/{name}')
     def __try_data(self, name):
         try: return self.data[name]
         except KeyError: return []
