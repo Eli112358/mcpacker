@@ -64,7 +64,7 @@ class DataPacker(DataPack):
         for path, data in self.data['recipes'].items():
             recipe = Recipe(
                 type = 'crafting_shapeless',
-                group = self.tag.suffix(path[:path.index('/')]),
+                group = f"{self.tag.suffix(path[:path.index('/')])}",
                 result = {'item': resolve(data[0][1]), 'count': data[0][0]},
                 ingredients = []
             )
