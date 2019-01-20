@@ -27,7 +27,8 @@ class DataPacker(DataPack):
         def load(): self.load.set()
         def tick(): self.tick.set()
         def tick_1(): self.tick.set(self.data['objectives'])
-        try: functions() or load() or tick_1() or tick()
+        def recipes(): self.recipes()
+        try: functions() or load() or tick_1() or tick() or recipes()
         except AttributeError: pass
         except KeyError: pass
         Built(self).set()
