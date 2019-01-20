@@ -4,6 +4,8 @@ from mcpacker.items import *
 import copy
 import json
 
+alphabet_keys = 'abcdefghi'
+
 class DataPacker(DataPack):
     def __init__(self, name, description, auto_process_data = True):
         super().__init__(name, description)
@@ -62,20 +64,26 @@ class DataPacker(DataPack):
         self.load = Load(self, self.__try_data('objectives'))
     def recipes(self):
         for path, data in self.data['recipes'].items():
+            shaped = len(data) == 3
             recipe = Recipe(
                 type = 'crafting_shapeless',
                 group = f"{self.tag.suffix(path[:path.index('/')])}",
-                result = {'item': resolve(data[0][1]), 'count': data[0][0]},
-                ingredients = []
+                result = {'item': resolve(data[0][1]), 'count': data[0][0]}
             )
-            item = path[path.index('/')+1:]
+            if shaped:
+                recipe.type = 'crafting_shaped'
+                recipe.pattern = data[2]
+                recipe.key = {}
+            else:
+                recipe.ingredients = []
+            icon_id = path[path.index('/')+1:]
             advancement = Advancement(
                 parent = resolve('root', self),
                 rewards = {'recipes': [resolve(path, self)]},
                 display = {
-                    'icon': get_ingredient(self, item),
-                    'title': f'Craftable {item}',
-                    'description': f'Craftable {item}',
+                    'icon': get_ingredient(self, icon_id),
+                    'title': f'Craftable {icon_id}',
+                    'description': f'Craftable {icon_id}',
                     'show_toast': False,
                     'announce_to_chat': False,
                     'hidden': True
@@ -87,9 +95,13 @@ class DataPacker(DataPack):
                     }
                 }
             )
-            for item in data[1]:
-                recipe.ingredients.append(get_ingredient(self, item))
-                advancement.criteria['have_items']['conditions']['items'].append(get_ingredient(self, path[path.index('/')+1:]))
+            for i in range(len(data[1])):
+                entry = get_ingredient(self, data[1][i])
+                if shaped:
+                    recipe.key[alphabet_keys[i]] = entry
+                else:
+                    recipe.ingredients.append(entry)
+                advancement.criteria['have_items']['conditions']['items'].append(entry)
             self.set(path, recipe)
             if 'recipe_advancement' in self.data:
                 if self.data['recipe_advancement']:
