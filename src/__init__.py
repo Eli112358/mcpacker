@@ -64,6 +64,19 @@ class DataPacker(DataPack):
         self.functions = Functions(self.__try_data('functions'))
         self.load = Load(self, self.__try_data('objectives'))
     def recipes(self):
+        self.set('recipes/root', Advancement(
+            display = {
+                'icon': get_ingredient(self, 'piston'),
+                'title': 'Recipe root',
+                'description': 'Recipe root'
+            },
+            criteria = {
+                'impossible': {
+                    'trigger': resolve('impossible')
+                }
+            }
+        ))
+        self.tick.add_text(f'advancement revoke @a from {resolve("recipes/root", self)}\n')
         for path, data in self.data['recipes'].items():
             shaped = len(data) == 3
             recipe = Recipe(
@@ -77,14 +90,14 @@ class DataPacker(DataPack):
                 recipe.key = {}
             else:
                 recipe.ingredients = []
-            icon_id = path[path.index('/')+1:]
+            icon_id = data[0][1]
             advancement = Advancement(
-                parent = resolve('root', self),
+                parent = resolve('recipes/root', self),
                 rewards = {'recipes': [resolve(path, self)]},
                 display = {
                     'icon': get_ingredient(self, icon_id),
-                    'title': f'Craftable {icon_id}',
-                    'description': f'Craftable {icon_id}',
+                    'title': f'Craftable {get_name(icon_id)}',
+                    'description': f'Craftable {get_name(icon_id)}',
                     'show_toast': False,
                     'announce_to_chat': False,
                     'hidden': True
