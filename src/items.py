@@ -15,7 +15,7 @@ wood_types = [
 
 quote = lambda s: f'"{s}"'
 escape = lambda s: s.replace('\\', '\\\\').replace('"', '\\"')
-flatten = lambda name: re.sup("_{2,}", ' ', re.sub("[ .,'\"\\/#!$%^&*;:{}=-`~()]", '_', name))
+flatten = lambda name: re.sub("_{2,}", ' ', re.sub("[ .,'\"\\/#!$%^&*;:{}=-`~()]", '_', name))
 def get_name(name):
     words = re.sub('[_ ]', ' ', name).split(' ')
     for i in range(len(words)):
