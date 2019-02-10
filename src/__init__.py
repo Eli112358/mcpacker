@@ -17,19 +17,19 @@ class DataPacker(DataPack):
     def add_pool(self, path, pool):
         self.copy_loot_table(path).pools.append(pool)
     def copy_loot_table(self, path):
+        my_tables = self['minecraft'].loot_tables
         for name, pack in self.packs.items():
             tables = pack['minecraft'].loot_tables
-            if path in tables and not path in self['minecraft'].loot_tables:
-                self.set(f'minecraft:{path}', copy.deepcopy(tables[path]))
-        return self['minecraft'].loot_tables[path]
+            if path in tables and not path in my_tables:
+                self.set(resolve(path), copy.deepcopy(tables[path]))
+        return my_tables[path]
     def dump(self):
         def functions(): self.functions.set(self)
         def load(): self.load.set()
         def tick(): self.tick.set()
-        def tick_1(): self.tick.set(self.data['objectives'])
+        def tick_1(): self.tick.set(self.__try_data('objectives'))
         def recipes(): self.recipes()
         try: functions() or load() or tick_1() or tick() or recipes()
-        except AttributeError: pass
         except KeyError: pass
         Built(self).set()
         super().dump('out', overwrite=True)
@@ -64,6 +64,9 @@ class DataPacker(DataPack):
         self.functions = Functions(self.__try_data('functions'))
         self.load = Load(self, self.__try_data('objectives'))
     def recipes(self):
+        data = self.__try_data('recipes')
+        if not data:
+            return
         self.set('recipes/root', Advancement(
             display = {
                 'icon': get_ingredient(self, 'piston'),
@@ -77,7 +80,7 @@ class DataPacker(DataPack):
             }
         ))
         self.tick.add_text(f'advancement revoke @a from {resolve("recipes/root", self)}\n')
-        for path, data in self.data['recipes'].items():
+        for path, data in data.items():
             shaped = len(data) == 3
             recipe = Recipe(
                 type = 'crafting_shapeless',
@@ -127,6 +130,8 @@ class DataPacker(DataPack):
         self[this_path] = value
     def __load_dependancies(self):
         data = self.__try_data('dependancies')
+        if not data:
+            return
         self.packs = {}
         for name in data:
             self.packs[name] = DataPack.load(f'out/{name}')
