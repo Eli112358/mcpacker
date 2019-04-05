@@ -38,9 +38,19 @@ class Functions(object):
     def add_indexed(self, relpath, size, text):
         for i in range(size):
             self.add_text(relpath, text.replace('{i}', f'{i}'))
-    def add_data(self, relpath, data, text):
-        # TODO: for warps
-        pass
+    def add_data(self, templates, data, indexed = False):
+        def get_data_str(name, data):
+            str = templates[name][0:]
+            for kay, value in data.items():
+                str = str.replace(kay, value)
+            return str
+        for name, list in data.items():
+            for entry in list:
+                data_str = get_data_str(name, entry['data'])
+                if indexed:
+                    self.add_indexed(name, entry['n'], data_str)
+                else:
+                    self.add_text(name, data_str)
     def set(self, pack):
         if self.has_set: return
         for relpath, func in self.functions.items():
