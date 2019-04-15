@@ -40,7 +40,6 @@ class FunctionWrapper(object):
 
 class Functions(dict):
     def __init__(self, relpaths):
-        self.has_set = False
         for relpath in relpaths:
             self.add(relpath)
     def add(self, relpath, body = ['']):
@@ -59,14 +58,11 @@ class Functions(dict):
                 else:
                     self[name].add_text(data_str)
     def set(self, pack):
-        if self.has_set: return
         for path, func in self.items():
             func.set(pack, resolve(path, pack))
-        self.has_set = True
 
 class SelfTaggedFunction(FunctionWrapper):
     def __init__(self, pack, relpath, body = '', namespace = 'minecraft'):
-        self.has_set = False
         self.pack = pack
         self.relpath = relpath
         self.namespace = namespace
@@ -79,9 +75,7 @@ class SelfTaggedFunction(FunctionWrapper):
     def create_tag(self):
         self.pack[resolve(self.relpath, None, self.namespace)] = FunctionTag()
     def set(self):
-        if self.has_set: return
         super().set(self.pack, self.fullpath, lambda: self.add_to_tag(self.fullpath))
-        self.has_set = True
 
 class Load(SelfTaggedFunction):
     def __init__(self, pack, objectives = []):
