@@ -23,21 +23,28 @@ colors = [
 
 join = lambda lines: '\n'.join(lines)
 
-class Functions(object):
+class FunctionWrapper(object):
+    def __init__(self, body = ''):
+        self.function = Function(body)
+    def add_text(self, text):
+        self.function.body += text
+    def add_lines(self, lines):
+        self.add_text(join(lines) + '\n')
+    def add_indexed(self, size, text):
+        for i in range(size):
+            self.add_text(text.replace('{i}', f'{i}'))
+    def set(self, pack, path, callback = None):
+        if not len(self.function.body): return
+        pack[path] = self.function
+        if callback: callback()
+
+class Functions(dict):
     def __init__(self, relpaths):
         self.has_set = False
-        self.functions = {}
         for relpath in relpaths:
             self.add(relpath)
     def add(self, relpath, body = ['']):
-        self.functions[relpath] = Function(join(body))
-    def add_text(self, relpath, text):
-        self.functions[relpath].body += text
-    def add_lines(self, relpath, lines):
-        self.add_text(relpath, join(lines) + '\n')
-    def add_indexed(self, relpath, size, text):
-        for i in range(size):
-            self.add_text(relpath, text.replace('{i}', f'{i}'))
+        self[relpath] = FunctionWrapper(join(body))
     def add_data(self, templates, data, indexed = False):
         def get_data_str(name, data0):
             str = templates[name][0:]
@@ -48,30 +55,23 @@ class Functions(object):
             for entry in list:
                 data_str = get_data_str(name, entry['data'])
                 if indexed:
-                    self.add_indexed(name, entry['n'], data_str)
+                    self[name].add_indexed(entry['n'], data_str)
                 else:
-                    self.add_text(name, data_str)
+                    self[name].add_text(data_str)
     def set(self, pack):
         if self.has_set: return
-        for relpath, func in self.functions.items():
-            pack[resolve(relpath, pack)] = func
+        for path, func in self.items():
+            func.set(pack, resolve(path, pack))
         self.has_set = True
 
-class SelfTaggedFunction(object):
+class SelfTaggedFunction(FunctionWrapper):
     def __init__(self, pack, relpath, body = '', namespace = 'minecraft'):
         self.has_set = False
         self.pack = pack
         self.relpath = relpath
         self.namespace = namespace
-        self.function = Function(body)
         self.fullpath = resolve(relpath, pack)
-    def add_text(self, text):
-        self.function.body += text
-    def add_lines(self, lines):
-        self.add_text(join(lines) + '\n')
-    def add_indexed(self, size, text):
-        for i in range(size):
-            self.add_text(text.replace('{i}', f'{i}'))
+        super().__init__(body)
     def add_to_tag(self, path):
         if not self.relpath in self.pack[self.namespace].function_tags:
             self.create_tag()
@@ -80,9 +80,7 @@ class SelfTaggedFunction(object):
         self.pack[resolve(self.relpath, None, self.namespace)] = FunctionTag()
     def set(self):
         if self.has_set: return
-        if not len(self.function.body): return
-        self.pack[self.fullpath] = self.function
-        self.add_to_tag(self.fullpath)
+        super().set(self.pack, self.fullpath, lambda: self.add_to_tag(self.fullpath))
         self.has_set = True
 
 class Load(SelfTaggedFunction):
