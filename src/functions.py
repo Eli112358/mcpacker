@@ -39,9 +39,9 @@ class Functions(object):
         for i in range(size):
             self.add_text(relpath, text.replace('{i}', f'{i}'))
     def add_data(self, templates, data, indexed = False):
-        def get_data_str(name, data):
+        def get_data_str(name, data0):
             str = templates[name][0:]
-            for kay, value in data.items():
+            for kay, value in data0.items():
                 str = str.replace(kay, value)
             return str
         for name, list in data.items():
