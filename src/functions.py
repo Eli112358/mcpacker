@@ -65,7 +65,6 @@ class SelfTaggedFunction(object):
         self.namespace = namespace
         self.function = Function(body)
         self.fullpath = resolve(relpath, pack)
-        pack[resolve(relpath, None, namespace)] = FunctionTag()
     def add_text(self, text):
         self.function.body += text
     def add_lines(self, lines):
@@ -74,9 +73,14 @@ class SelfTaggedFunction(object):
         for i in range(size):
             self.add_text(text.replace('{i}', f'{i}'))
     def add_to_tag(self, path):
+        if not self.relpath in self.pack[self.namespace].function_tags:
+            self.create_tag()
         self.pack[self.namespace].function_tags[self.relpath].values.append(path)
+    def create_tag(self):
+        self.pack[resolve(self.relpath, None, self.namespace)] = FunctionTag()
     def set(self):
         if self.has_set: return
+        if not len(self.function.body): return
         self.pack[self.fullpath] = self.function
         self.add_to_tag(self.fullpath)
         self.has_set = True
@@ -119,3 +123,4 @@ class Built(SelfTaggedFunction):
             }
         ])
         super().__init__(pack, 'built', f'tellraw @s {message}', 'main')
+        # self.create_tag()
