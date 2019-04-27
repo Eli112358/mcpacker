@@ -14,6 +14,7 @@ class DataPacker(DataPack):
         self.tick = Tick(self)
         if auto_process_data:
             self.process_data()
+        print('DataPacker Initialized.')
     def add_pool(self, path, pool):
         self.copy_loot_table(path).pools.append(pool)
     def copy_loot_table(self, path):
@@ -24,6 +25,7 @@ class DataPacker(DataPack):
                 self.set(resolve(path), copy.deepcopy(tables[path]))
         return my_tables[path]
     def dump(self):
+        print('[dump] Starting...')
         def functions(): self.functions.set(self)
         def load(): self.load.set()
         def tick(): self.tick.set()
@@ -33,6 +35,7 @@ class DataPacker(DataPack):
         except KeyError: pass
         Built(self).set()
         super().dump('out', overwrite=True)
+        print('[dump] Complete.')
     def get_data(self, name):
         data_file = f'data/{name}.json'
         try:
@@ -134,7 +137,9 @@ class DataPacker(DataPack):
             return
         self.packs = {}
         for name in data:
+            print(f'[dependancies] Loading \'{name}\'...')
             self.packs[name] = DataPack.load(f'out/{name}')
+        print(f'[dependancies] Complete.')
     def __try_data(self, name):
         try: return self.data[name]
         except KeyError: return []
