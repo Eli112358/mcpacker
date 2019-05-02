@@ -150,4 +150,4 @@ class GlobalName(object):
     def __str__(self):
         return self.name
     def suffix(self, suffix):
-        return self.__class__(f'{self.name}_{suffix}')
+        return GlobalName(f'{self.name}_{suffix}')
