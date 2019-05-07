@@ -1,6 +1,8 @@
 import os
 import copy
 import re
+from nbtlib import (parse_nbt, serialize_tag)
+from nbtlib.tag import (Compound, List, String)
 
 server_name = os.environ.get('minecraft_server_name', '')
 
@@ -15,6 +17,7 @@ wood_types = [
 
 quote = lambda s: f'"{s}"'
 escape = lambda s: s.replace('\\', '\\\\').replace('"', '\\"')
+custom_name = lambda name: String(quote(escape(quote(name))))
 flatten = lambda name: re.sub("_{2,}", ' ', re.sub("[ .,'\"\\/#!$%^&*;:{}=-`~()]", '_', name))
 def get_name(name):
     words = re.sub('[_ ]', ' ', name).split(' ')
@@ -51,117 +54,66 @@ class Switch(object):
             case += self.check(i)
         return self.cases[case]
 
-class NbtList(object):
-    def __init__(self, name, pattern = '', data = []):
-        self.name = name
-        self.pattern = pattern
-        self.data = data[0:]
-    def dump(self):
-        list = []
-        for value in self.data:
-            entry = self.pattern[0:]
-            for i in range(len(value)):
-                entry = entry.replace(f'{{value[{i}]}}', f'{value[i]}')
-            list.append(entry)
-        return self.name + ':[' + ','.join(list) + ']'
-
-class NbtObject(object):
-    def __init__(self, name, values = [], children = []):
-        self.name = name
-        self.values = values[0:]
-        self.children = children[0:]
-    def dump(self):
-        result = self.name + ':{'
-        list = []
-        if self.values:
-            result += ','.join(self.values)
-        if self.values and self.children:
-            result += ','
-        for child in self.children:
-            list.append(child.dump())
-        result += ','.join(list)
-        result += '}'
-        return result
-
-class ItemDisplay(NbtObject):
-    def __init__(self, custom_name, lore = [], values = []):
-        super().__init__('display', values)
-        self.custom_name = custom_name
-        if lore:
-            self.set_lore(lore)
-        self.dumped = False
-    def set_lore(self, lore):
-        self.lore = []
-        for value in lore:
-            self.lore.append([value])
-    def dump(self):
-        if not self.dumped:
-            try: self.values.append(f'Name:{quote(escape(quote(self.custom_name)))}')
-            except AttributeError: pass
-            try: self.children.append(NbtList('Lore', '"{value[0]}"', self.lore))
-            except AttributeError: pass
-            self.dumped = True
-        return super().dump()
+class NbtList(Compound):
+    def __init__(self, name, pattern='', data=[]):
+        super().__init__()
+        self[name] = List[Compound]()
+        data0 = data[0:]
+        for value in data0:
+            self[name].append(parse_nbt(pattern.format(*value)))
 
 class Enchantments(NbtList):
-    def __init__(self, list = [['', 1]], stored = False):
-        super().__init__('Enchantments', '{id:"{value[0]}",lvl:{value[1]}}', list)
-        if stored:
-            self.name = 'Stored' + self.name
-
-class ItemNbt(object):
-    def __init__(self, display, values = [], objects = []):
-        self.display = display
-        self.values = values
-        self.objects = objects
-    def dump(self):
-        parts = []
-        if self.display:
-            parts.append(self.display.dump())
-        if self.values:
-            parts.append(','.join(self.values))
-        for obj in self.objects:
-            parts.append(obj.dump())
-        return '{' + ','.join(parts) + '}'
+    def __init__(self, list=[['', 1]], stored=False):
+        prefix = 'Stored' if stored else ''
+        super().__init__(f'{prefix}Enchantments', '{{id:"{}",lvl:{}}}', list)
 
 class Item(object):
-    def __init__(self, id, count = 1, nbt = None):
-        self.id = id
+    def __init__(self, id, count=1, nbt=None):
+        self.id = resolve(id)
         self.count = count
         self.nbt = nbt
     def get_name(self):
-        if self.nbt:
-            return get_name(self.nbt.display.custom_name)
+        if 'display' in self.nbt:
+            if 'Name' in self.nbt['display']:
+                return get_name(serialize_tag(self.nbt['display']['Name']))
         return get_name(self.id)
     def stack(self, count):
         item = copy.deepcopy(self)
         item.count = count
         return item
+    def __get_fixed_nbt(self):
+        return re.sub("(?<=:)'|'(?=[,}])", '', serialize_tag(self.nbt, compact=True)).replace('\\\\', '\\')
     def loot(self):
         entry = {
             'type': 'item',
-            'name': resolve(self.id)
+            'name': self.id,
+            'functions': []
         }
-        functions = []
+        def add_function(value, name, fname=None):
+            fname = fname if fname else f'set_{name}'
+            entry['functions'].append({
+                'function': fname,
+                f'{name}': value
+            })
         if self.count > 1:
-            functions.append({
-                'function': 'set_count',
-                'count': self.count
-            })
+            add_function(self.count, 'count')
         if self.nbt:
-            functions.append({
-                'function': 'set_nbt',
-                'nbt': self.nbt.dump()
-            })
-        if len(functions) > 0:
-            entry['functions'] = functions
+            add_function(self.__get_fixed_nbt(), 'tag', 'set_nbt')
+        if len(entry['functions']) == 0:
+            entry.pop('functions')
         return entry
     def trade(self):
-        result = f'{{id:"minecraft:{self.id}",Count:{self.count}'
+        str = 'id:{},Count:{}'.format(self.id, self.count)
         if self.nbt:
-            result += ',tag:'
-            result += self.nbt.dump()
-        return result + '}'
+            str += ',nbt:{}'.format(self.__get_fixed_nbt())
+        return str
+    def give(self):
+        str = self.id[0:]
+        if self.nbt:
+            str += self.__get_fixed_nbt()
+        if self.count > 1:
+            str += ' {}'.format(self.count)
+        return str
 
 class BankNote(Item):
     denominations = [
@@ -174,7 +126,7 @@ class BankNote(Item):
         '1',
         '0.1'
     ]
-    def __init__(self, count, index = 0, value = None):
+    def __init__(self, count, index=0, value=None):
         if index < 0:
             index += len(self.denominations)
         if value == None:
@@ -182,10 +134,17 @@ class BankNote(Item):
         lore = ['Official Bank Note']
         if server_name:
             lore[0] += f' of {server_name}'
-        display = ItemDisplay(f'{value} Bank Note', lore)
-        nbt = ItemNbt(display, [], [Enchantments()])
+        nbt = Compound()
+        nbt['display'] = Compound()
+        nbt['display']['Name'] = custom_name('{} Bank Note'.format(value))
+        nbt['display']['Lore'] = List[String](lore)
+        nbt.merge(Enchantments())
         super().__init__('paper', count, nbt)
 
 class EnchantedBook(Item):
-    def __init__(self, list, display = None):
-        super().__init__('enchanted_book', 1, ItemNbt(display, [], [Enchantments(list, True)]))
+    def __init__(self, list, display=None):
+        nbt = Compound()
+        if display:
+            nbt['display'] = display
+        nbt.merge(Enchantments(list, True))
+        super().__init__('enchanted_book', 1, nbt)
