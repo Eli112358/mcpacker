@@ -143,6 +143,7 @@ class DataPacker(DataPack):
     def __try_data(self, name):
         try: return self.data[name]
         except KeyError: return []
+        except TypeError: return []
 
 class GlobalName(object):
     def __init__(self, name):
