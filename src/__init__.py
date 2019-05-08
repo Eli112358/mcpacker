@@ -6,6 +6,10 @@ import json
 
 alphabet_keys = 'abcdefghi'
 
+get_pool = lambda rolls=1, entries=[]: copy.deepcopy({"rolls": rolls, "entries": entries})
+get_entry = lambda type="item", name=resolve("stone"): copy.deepcopy({"type": type, "name": name})
+get_range = lambda min=0, max=1: copy.deepcopy({"min": min, "max": max})
+
 class DataPacker(DataPack):
     def __init__(self, name, description, auto_process_data = True):
         super().__init__(name, description)
