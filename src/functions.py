@@ -86,6 +86,8 @@ class Load(SelfTaggedFunction):
 class Tick(SelfTaggedFunction):
     def __init__(self, pack, body = ''):
         super().__init__(pack, 'tick', body)
+        if pack.data and "options" in pack.data:
+            self.add_lines([pack.data["options"]["pattern"].format(*values) for values in pack.data["options"]["features"]])
     def set(self, objectives = []):
         names = []
         for obj in objectives:
