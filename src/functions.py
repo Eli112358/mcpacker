@@ -29,10 +29,9 @@ class FunctionWrapper(object):
     def add_text(self, text):
         self.function.body += text
     def add_lines(self, lines):
-        self.add_text(join(lines) + '\n')
+        self.add_text(join(lines) + ("\n" if len(lines) else ""))
     def add_indexed(self, size, text):
-        for i in range(size):
-            self.add_text(text.replace('{i}', f'{i}'))
+        self.add_lines([text.replace("{i}", f"{i}") for i in range(size)])
     def set(self, pack, path, callback = None):
         if not len(self.function.body): return
         pack[path] = self.function
@@ -47,8 +46,8 @@ class Functions(dict):
     def add_data(self, templates, data, indexed = False):
         def get_data_str(name, data0):
             str = templates[name][0:]
-            for kay, value in data0.items():
-                str = str.replace(kay, value)
+            for key, value in data0.items():
+                str = str.replace(key, value)
             return str
         for name, list in data.items():
             for entry in list:
@@ -80,25 +79,21 @@ class SelfTaggedFunction(FunctionWrapper):
 class Load(SelfTaggedFunction):
     def __init__(self, pack, objectives = []):
         super().__init__(pack, 'load')
-        for obj in objectives:
-            self.function.body += f'scoreboard objectives add {obj}\n'
+        self.add_lines([f"scoreboard objectives add {name}" for name in objectives])
 
 class Tick(SelfTaggedFunction):
+    operations = [
+        "set @a[scores={{{0}=1..}}] {0} 0",
+        "add @a {} 0",
+        "enable @a {}"
+    ]
     def __init__(self, pack, body = ''):
         super().__init__(pack, 'tick', body)
         if pack.data and "options" in pack.data:
             self.add_lines([pack.data["options"]["pattern"].format(*values) for values in pack.data["options"]["features"]])
     def set(self, objectives = []):
-        names = []
-        for obj in objectives:
-            if obj.split(' ')[1] == 'trigger':
-                names.append(obj.split(' ')[0])
-        def add_lines(operation):
-            for name in names:
-                self.add_text(f'scoreboard players {operation.replace("{name}", name)}\n')
-        add_lines('set @a[scores={{name}=1..}] {name} 0')
-        add_lines('add @a {name} 0')
-        add_lines('enable @a {name}')
+        names = [name.split(" ")[0] for name in objectives if name.split(" ")[1] == "trigger"]
+        self.add_lines(["scoreboard players " + op[0:].format(name) for op in self.operations for name in names])
         super().set()
 
 class Built(SelfTaggedFunction):
@@ -117,4 +112,3 @@ class Built(SelfTaggedFunction):
             }
         ])
         super().__init__(pack, 'built', f'tellraw @s {message}', 'main')
-        # self.create_tag()

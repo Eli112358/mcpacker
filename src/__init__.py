@@ -32,10 +32,9 @@ class DataPacker(DataPack):
         print('[dump] Starting...')
         def functions(): self.functions.set(self)
         def load(): self.load.set()
-        def tick(): self.tick.set()
-        def tick_1(): self.tick.set(self.__try_data('objectives'))
+        def tick(): self.tick.set(self.__try_data('objectives'))
         def recipes(): self.recipes()
-        try: functions() or load() or tick_1() or tick() or recipes()
+        try: functions() or load() or tick() or recipes()
         except KeyError: pass
         Built(self).set()
         super().dump('out', overwrite=True)
