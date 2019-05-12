@@ -56,6 +56,9 @@ class Functions(dict):
                     self[name].add_indexed(entry['n'], data_str)
                 else:
                     self[name].add_text(data_str)
+    def load(self, pack):
+        if not "function_code" in pack.data: return
+        [self[path].add_lines(lines) for path,lines in pack.data["function_code"].items()]
     def set(self, pack):
         for path, func in self.items():
             func.set(pack, resolve(path, pack))
