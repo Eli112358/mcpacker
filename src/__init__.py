@@ -15,7 +15,8 @@ class DataPacker(DataPack):
         super().__init__(name, description)
         self.data = self.get_data(self.name)
         self.tag = GlobalName(self.name)
-        self.tick = Tick(self)
+        self.functions = Functions()
+        self.functions["tick"] = Tick(self)
         if auto_process_data:
             self.process_data()
         print("DataPacker Initialized.")
@@ -31,10 +32,8 @@ class DataPacker(DataPack):
     def dump(self):
         print("[dump] Starting...")
         def functions(): self.functions.set(self)
-        def load(): self.load.set()
-        def tick(): self.tick.set(self.__try_data("objectives"))
         def recipes(): self.recipes()
-        try: functions() or load() or tick() or recipes()
+        try: functions() or recipes()
         except KeyError: pass
         Built(self).set()
         super().dump("out", overwrite=True)
@@ -44,8 +43,8 @@ class DataPacker(DataPack):
         try:
             with open(data_file) as json_data:
                 return json.load(json_data)
-        # data file is optional: ignore error if it does not exist
-        except FileNotFoundError as fnf: pass
+        # data file is optional: return empty dict if it does not exist
+        except FileNotFoundError as fnf: return {}
         # but still catch JSONDecodeError
         except json.decoder.JSONDecodeError as jde:
             exit("(in {}) {}: line {} column {}".format(data_file, jde.msg, jde.lineno, jde.colno))
@@ -65,8 +64,8 @@ class DataPacker(DataPack):
         ))
     def process_data(self):
         self.__load_dependancies()
-        self.functions = Functions(self.__try_data("functions"))
-        self.load = Load(self, self.__try_data("objectives"))
+        self.functions["load"] = Load(self, self.__try_data("objectives"))
+        [self.functions.add(relpath) for relpath in self.__try_data("functions")]
     def recipes(self):
         data = self.__try_data("recipes")
         if not data:

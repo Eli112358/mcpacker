@@ -36,8 +36,6 @@ class FunctionWrapper(object):
         if callback: callback()
 
 class Functions(dict):
-    def __init__(self, relpaths):
-        [self.add(relpath) for relpath in relpaths]
     def add(self, relpath, body=[""]):
         self[relpath] = FunctionWrapper("\n".join(body))
     def add_data(self, pack):
@@ -50,8 +48,7 @@ class Functions(dict):
         if not "function_code" in pack.data: return
         [self[path].add_lines(lines) for path,lines in pack.data["function_code"].items()]
     def set(self, pack):
-        for path, func in self.items():
-            func.set(pack, resolve(path, pack))
+        [func.set(pack, resolve(path, pack)) for path,func in self.items()]
 
 class SelfTaggedFunction(FunctionWrapper):
     def __init__(self, pack, relpath, body="", namespace="minecraft"):
@@ -66,7 +63,7 @@ class SelfTaggedFunction(FunctionWrapper):
         self.pack[self.namespace].function_tags[self.relpath].values.append(path)
     def create_tag(self):
         self.pack[resolve(self.relpath, None, self.namespace)] = FunctionTag()
-    def set(self):
+    def set(self, pack=None, path=None):
         super().set(self.pack, self.fullpath, lambda: self.add_to_tag(self.fullpath))
 
 class Load(SelfTaggedFunction):
@@ -82,12 +79,13 @@ class Tick(SelfTaggedFunction):
     ]
     def __init__(self, pack, body = ""):
         super().__init__(pack, "tick", body)
-        if pack.data and "options" in pack.data:
+        if "options" in pack.data:
             self.add_lines([pack.data["options"]["pattern"].format(*values) for values in pack.data["options"]["features"]])
-    def set(self, objectives = []):
+    def set(self, pack, path):
+        objectives = [] if not "objectives" in pack.data else pack.data["objectives"]
         names = [name.split(" ")[0] for name in objectives if name.split(" ")[1] == "trigger"]
         self.add_lines(["scoreboard players " + op[0:].format(name) for op in self.operations for name in names])
-        super().set()
+        super().set(pack, path)
 
 class Built(SelfTaggedFunction):
     def __init__(self, pack):
