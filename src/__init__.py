@@ -6,9 +6,6 @@ from .functions import *
 from .items import *
 
 alphabet_keys = 'abcdefghi'
-get_pool = lambda rolls=1, entries=[]: copy.deepcopy({'rolls': rolls, 'entries': entries})
-get_entry = lambda type='item', name=resolve('stone'): copy.deepcopy({'type': type, 'name': name})
-get_range = lambda min=0, max=1: copy.deepcopy({'min': min, 'max': max})
 set_multiple = lambda a_dict, keys, get_value: [set_dict(a_dict, key, get_value(key)) for key in keys]
 def set_dict(a_dict, key, value): a_dict[key] = value
 
