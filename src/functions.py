@@ -1,7 +1,8 @@
 from mcpack import (Function, FunctionTag)
-from mcpacker.items import resolve
 from datetime import datetime
 import json
+
+from .items import *
 
 colors = [
     "black",

@@ -18,18 +18,13 @@ wood_types = [
 quote = lambda s: f'"{s}"'
 escape = lambda s: s.replace('\\', '\\\\').replace('"', '\\"')
 custom_name = lambda name: String(quote(escape(quote(name))))
-flatten = lambda name: re.sub("_{2,}", ' ', re.sub("[ .,'\"\\/#!$%^&*;:{}=-`~()]", '_', name))
+flatten = lambda name: re.sub('_{2,}', ' ', re.sub('[ .,\'"\\/#!$%^&*;:{}=-`~()]', '_', name))
+resolve = lambda path, pack=None, namespace='minecraft': f'{pack.name if pack else namespace}:{path}'
 def get_name(name):
     words = re.sub('[_ ]', ' ', name).split(' ')
     for i in range(len(words)):
         words[i] = words[i].capitalize()
     return ' '.join(words)
-def resolve(path, pack = None, namespace = 'minecraft'):
-    try:
-        namespace = pack.name
-    except Exception as e:
-        pass
-    return f'{namespace}:{path}'
 def get_ingredient(pack, name):
     return Switch(2, (lambda i: name[i]=='#'), [
         {'item': resolve(name)},
@@ -49,18 +44,12 @@ class Switch(object):
         self.check = check
         self.cases = cases
     def dump(self):
-        case = 0
-        for i in range(self.max):
-            case += self.check(i)
-        return self.cases[case]
+        return self.cases[sum([self.check(i) for i in range(self.max)])]
 
 class NbtList(Compound):
     def __init__(self, name, pattern='', data=[]):
         super().__init__()
-        self[name] = List[Compound]()
-        data0 = data[0:]
-        for value in data0:
-            self[name].append(parse_nbt(pattern.format(*value)))
+        self[name] = List[Compound]([parse_nbt(pattern.format(*value)) for value in data[0:]])
 
 class Enchantments(NbtList):
     def __init__(self, list=[['', 1]], stored=False):
@@ -84,17 +73,11 @@ class Item(object):
     def __get_fixed_nbt(self):
         return re.sub("(?<=:)'|'(?=[,}])", '', serialize_tag(self.nbt, compact=True)).replace('\\\\', '\\')
     def loot(self):
-        entry = {
-            'type': 'item',
-            'name': self.id,
-            'functions': []
-        }
+        entry = get_entry(name=self.id)
+        entry['functions'] = []
         def add_function(value, name, fname=None):
             fname = fname if fname else f'set_{name}'
-            entry['functions'].append({
-                'function': fname,
-                f'{name}': value
-            })
+            entry['functions'].append({'function': fname, f'{name}': value})
         if self.count > 1:
             add_function(self.count, 'count')
         if self.nbt:
@@ -103,17 +86,9 @@ class Item(object):
             entry.pop('functions')
         return entry
     def trade(self):
-        str = 'id:{},Count:{}'.format(self.id, self.count)
-        if self.nbt:
-            str += ',nbt:{}'.format(self.__get_fixed_nbt())
-        return str
+        return f'id:{self.id},Count:{self.count}' + f',nbt:{self.__get_fixed_nbt()}' if self.nbt else ''
     def give(self):
-        str = self.id[0:]
-        if self.nbt:
-            str += self.__get_fixed_nbt()
-        if self.count > 1:
-            str += ' {}'.format(self.count)
-        return str
+        return self.id + (self.__get_fixed_nbt() if self.nbt else '') + (' '+self.count if self.count > 1  else '')
 
 class BankNote(Item):
     denominations = [
@@ -131,13 +106,11 @@ class BankNote(Item):
             index += len(self.denominations)
         if value == None:
             value = self.denominations[index]
-        lore = ['Official Bank Note']
-        if server_name:
-            lore[0] += f' of {server_name}'
+        lore_suffix = (' of ' + server_name) if server_name else ''
         nbt = Compound()
         nbt['display'] = Compound()
-        nbt['display']['Name'] = custom_name('{} Bank Note'.format(value))
-        nbt['display']['Lore'] = List[String](lore)
+        nbt['display']['Name'] = custom_name(value + ' Bank Note')
+        nbt['display']['Lore'] = List[String](['Official Bank Note' + lore_suffix])
         nbt.merge(Enchantments())
         super().__init__('paper', count, nbt)
 
