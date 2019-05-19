@@ -43,7 +43,7 @@ class Villager(object):
     profession: str
     biome: Optional[str] = 'plains'
     trades: Optional[list] = field(default_factory=list)
-    def set(self, pack, root_name):
+    def set(self, pack, root_name, tag_name):
         get_list = lambda func,values: ','.join([func(value) for value in values])
         values = [
             self.coords,
@@ -55,8 +55,8 @@ class Villager(object):
             quote(resolve('empty')),
             get_list(lambda v: v.dump(), self.trades)
         ]
-        path = 'villagers/'+self.name
+        path = tag_name+'/'+self.name
         pack.set(path, Function(self.template.format(*values)))
-        if not 'villagers' in pack[root_name].function_tags:
-            pack.set(resolve('villagers', None, root_name), FunctionTag())
-        pack[root_name].function_tags['villagers'].values.append(resolve(path, pack))
+        if not tag_name in pack[root_name].function_tags:
+            pack.set(resolve(tag_name, None, root_name), FunctionTag())
+        pack[root_name].function_tags[tag_name].values.append(resolve(path, pack))
