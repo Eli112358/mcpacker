@@ -47,7 +47,7 @@ class Villager(object):
         get_list = lambda func,values: ','.join([func(value) for value in values])
         values = [
             self.coords,
-            quote(escape(quote(self.name))),
+            quote(escape(quote(get_name(self.name)))),
             quote(resolve(self.profession)),
             quote(resolve(self.biome)),
             get_list(lambda v: quote(v), ['shop', 'villager']),
