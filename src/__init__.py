@@ -41,16 +41,20 @@ class DataPacker(DataPack):
         # but still catch JSONDecodeError
         except json.decoder.JSONDecodeError as jde:
             exit(f'(in {data_file}) {jde.msg}: line {jde.lineno} column {jde.colno}')
+    def get_adv_display(self, id, title, desc, bg=None):
+        display = {
+            'icon': get_ingredient(self, id),
+            'title': get_name(title),
+            'description': desc
+        }
+        if bg: display['background'] = resolve(f'textures/blocks/{bg}.png')
+        return display
+    def get_adv_criteria_impossible(self):
+        return {'never': {'trigger': resolve('impossible')}}
+    def get_adv_criteria_have_items(self, ids):
+        return {'have_items': {'trigger': resolve('inventory_changed'), 'conditions': {'items': [get_ingredient(self, id) for id in ids]}}}
     def init_root_advancement(self, icon, description, background='stone'):
-        self.set('root', Advancement(
-            display={
-                'icon': get_ingredient(self, icon),
-                'title': get_name(self.name),
-                'description': description,
-                'background': resolve(f'textures/blocks/{background}.png')
-            },
-            criteria={'never': {'trigger': resolve('impossible')}}
-        ))
+        self.set('root', Advancement(display=self.get_adv_display(icon, self.name, description, background), criteria=self.get_adv_criteria_impossible()))
     def process_data(self):
         self.__load_dependancies()
         self.functions['load'] = Load(self, self.__try_data('objectives'))
@@ -58,12 +62,7 @@ class DataPacker(DataPack):
     def recipes(self):
         data = self.__try_data('recipes')
         if not data: return
-        root = Advancement(
-            display={'icon': get_ingredient(self, 'piston')},
-            criteria={'impossible': {'trigger': resolve('impossible')}}
-        )
-        [root.display.setdefault(key, 'Recipe root') for key in ['title', 'description']]
-        self.set('recipes/root', root)
+        self.set('recipes/root', Advancement(display=self.get_adv_display('piston', 'Recipe root', 'Recipe root'), criteria=self.get_adv_criteria_impossible()))
         self.functions['tick'].add_text(f'advancement revoke @a from {resolve("recipes/root", self)}\n')
         for path, data in data.items():
             shaped = len(data) == 3
@@ -82,15 +81,14 @@ class DataPacker(DataPack):
                 recipe.ingredients = [get_ingredient(self, id) for id in data[1]]
             self.set(path, recipe)
             if 'recipe_advancement' in self.data and self.data['recipe_advancement']:
+                title = 'Craftable '+get_name(icon_id)
                 advancement = Advancement(
                     parent=resolve('recipes/root', self),
                     rewards={'recipes': [resolve(path, self)]},
-                    display={'icon': get_ingredient(self, icon_id), 'hidden': True},
-                    criteria={'have_items': {'trigger': resolve('inventory_changed'), 'conditions': {}}}
+                    display=self.get_adv_display(icon_id, title, title),
+                    criteria=self.get_adv_criteria_have_items(data[1])
                 )
-                [advancement.display.setdefault(key, 'Craftable '+get_name(icon_id)) for key in ['title', 'description']]
-                [advancement.display.setdefault(key, False) for key in ['announce_to_chat', 'show_toast']]
-                advancement.criteria['have_items']['conditions']['items'] = [get_ingredient(self, value) for value in data[1]]
+                [advancement.display.setdefault(key, not '_' in key) for  key in ['announce_to_chat', 'hidden', 'show_toast']]
                 self.set('recipes/'+path, advancement)
     def set(self, path, value, vanilla=False):
         self[path if ':' in path else resolve(path, self)] = value
