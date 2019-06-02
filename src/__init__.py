@@ -6,8 +6,6 @@ from .functions import *
 from .items import *
 
 alphabet_keys = 'abcdefghi'
-set_multiple = lambda a_dict, keys, get_value: [set_dict(a_dict, key, get_value(key)) for key in keys]
-def set_dict(a_dict, key, value): a_dict[key] = value
 
 class DataPacker(DataPack):
     def __init__(self, name, description, auto_process_data=True, progress_logging=True):
@@ -64,7 +62,7 @@ class DataPacker(DataPack):
             display={'icon': get_ingredient(self, 'piston')},
             criteria={'impossible': {'trigger': resolve('impossible')}}
         )
-        set_multiple(root.display, ['title', 'description'], lambda key: 'Recipe root')
+        [root.display.setdefault(key, 'Recipe root') for key in ['title', 'description']]
         self.set('recipes/root', root)
         self.functions['tick'].add_text(f'advancement revoke @a from {resolve("recipes/root", self)}\n')
         for path, data in data.items():
@@ -79,7 +77,7 @@ class DataPacker(DataPack):
                 recipe.type = 'crafting_shaped'
                 recipe.pattern = data[2]
                 recipe.key = {}
-                [set_dict(recipe.key, alphabet_keys[i], get_ingredient(self, data[1][i])) for i in range(len(data[1]))]
+                [recipe.key.setdefault(alphabet_keys[i], get_ingredient(self, d)) for i,d in enumerate(data[1])]
             else:
                 recipe.ingredients = [get_ingredient(self, id) for id in data[1]]
             self.set(path, recipe)
@@ -90,8 +88,8 @@ class DataPacker(DataPack):
                     display={'icon': get_ingredient(self, icon_id), 'hidden': True},
                     criteria={'have_items': {'trigger': resolve('inventory_changed'), 'conditions': {}}}
                 )
-                set_multiple(advancement.display, ['title', 'description'], lambda key: 'Craftable '+get_name(icon_id))
-                set_multiple(advancement.display, ['announce_to_chat', 'show_toast'], lambda key: False)
+                [advancement.display.setdefault(key, 'Craftable '+get_name(icon_id)) for key in ['title', 'description']]
+                [advancement.display.setdefault(key, False) for key in ['announce_to_chat', 'show_toast']]
                 advancement.criteria['have_items']['conditions']['items'] = [get_ingredient(self, value) for value in data[1]]
                 self.set('recipes/'+path, advancement)
     def set(self, path, value, vanilla=False):
@@ -102,7 +100,7 @@ class DataPacker(DataPack):
         def load(name):
             if self.progress_logging: print(f"[dependancies] Loading '{name}'...")
             return DataPack.load('out/'+name)
-        set_multiple(self.packs, self.data['dependancies'], load)
+        [self.packs.setdefault(key, load(key)) for key in self.data['dependancies']]
         if self.progress_logging: print('[dependancies] Complete.')
     def __try_data(self, name):
         try: return self.data[name]
