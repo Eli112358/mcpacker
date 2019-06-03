@@ -68,27 +68,22 @@ class DataPacker(DataPack):
         self.functions['load'] = Load(self, self.__try_data('objectives'))
         [self.functions.add(relpath) for relpath in self.__try_data('functions')]
     def recipes(self):
-        data = self.__try_data('recipes')
-        if not data: return
+        recipes = self.__try_data('recipes')
+        if not recipes: return
         self.set('recipes/root', Advancement(display=self.adv.display('piston', 'Recipe root', 'Recipe root'), criteria=self.adv.criteria_impossible()))
         self.functions['tick'].add_text(f'advancement revoke @a from {resolve("recipes/root", self)}\n')
-        for path, data in data.items():
-            shaped = len(data) == 3
+        for path,data in recipes.items():
+            shaped = len(data) - 2
             icon_id = data[0][1]
-            recipe = Recipe(
-                type='crafting_shapeless',
+            self.set(path, Recipe(
+                type='crafting_shape'+['less','d'][shaped],
                 group=self.tag.suffix(path[:path.index('/')]),
-                result={'item': resolve(data[0][1]), 'count': data[0][0]}
-            )
-            if shaped:
-                recipe.type = 'crafting_shaped'
-                recipe.pattern = data[2]
-                recipe.key = {}
-                [recipe.key.setdefault(alphabet_keys[i], get_ingredient(self, d)) for i,d in enumerate(data[1])]
-            else:
-                recipe.ingredients = [get_ingredient(self, id) for id in data[1]]
-            self.set(path, recipe)
-            if 'recipe_advancement' in self.data and self.data['recipe_advancement']:
+                result={'item': resolve(data[0][1]), 'count': data[0][0]},
+                pattern=data[2] if shaped else None,
+                key={alphabet_keys[i]: get_ingredient(self, d) for i,d in enumerate(data[1])} if shaped else None,
+                ingredients=[get_ingredient(self, id) for id in data[1]] if not shaped else None
+            ))
+            if self.__try_data('recipe_advancement'):
                 title = 'Craftable '+get_name(icon_id)
                 advancement = Advancement(
                     parent=resolve('recipes/root', self),
