@@ -53,6 +53,8 @@ class DataPacker(DataPack):
         return {'never': {'trigger': resolve('impossible')}}
     def get_adv_criteria_have_items(self, ids):
         return {'have_items': {'trigger': resolve('inventory_changed'), 'conditions': {'items': [get_ingredient(self, id) for id in ids]}}}
+    def get_adv_rewards(self, data):
+        return {type: [resolve(path, self) for path in paths] for type,paths in data}
     def init_root_advancement(self, icon, description, background='stone'):
         self.set('root', Advancement(display=self.get_adv_display(icon, self.name, description, background), criteria=self.get_adv_criteria_impossible()))
     def process_data(self):
@@ -84,7 +86,7 @@ class DataPacker(DataPack):
                 title = 'Craftable '+get_name(icon_id)
                 advancement = Advancement(
                     parent=resolve('recipes/root', self),
-                    rewards={'recipes': [resolve(path, self)]},
+                    rewards=self.get_adv_rewards([['recipes', [path]]]),
                     display=self.get_adv_display(icon_id, title, title),
                     criteria=self.get_adv_criteria_have_items(data[1])
                 )
