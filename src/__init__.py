@@ -7,6 +7,25 @@ from .items import *
 
 alphabet_keys = 'abcdefghi'
 
+class Advancement_Args():
+    def __init__(self, pack):
+        self.pack = pack
+    def display(self, id, title, desc, bg=None):
+        display = {
+            'icon': get_ingredient(self.pack, id),
+            'title': get_name(title),
+            'description': desc
+        }
+        if bg: display['background'] = resolve(f'textures/blocks/{bg}.png')
+        return display
+    def criteria_impossible(self):
+        return {'never': {'trigger': resolve('impossible')}}
+    def criteria_have_items(self, ids):
+        return {'have_items': {'trigger': resolve('inventory_changed'), 'conditions': {'items': [get_ingredient(self.pack, id) for id in ids]}}}
+    def rewards(self, data):
+        return {type: [resolve(path, self.pack) for path in paths] for type,paths in data}
+
+
 class DataPacker(DataPack):
     def __init__(self, name, description, auto_process_data=True, progress_logging=True):
         super().__init__(name, description)
@@ -14,6 +33,7 @@ class DataPacker(DataPack):
         self.tag = GlobalName(self.name)
         self.functions = Functions()
         self.functions['tick'] = Tick(self)
+        self.adv = Advancement_Args(self)
         self.progress_logging = progress_logging
         if auto_process_data: self.process_data()
         if self.progress_logging: print('DataPacker Initialized.')
@@ -41,22 +61,8 @@ class DataPacker(DataPack):
         # but still catch JSONDecodeError
         except json.decoder.JSONDecodeError as jde:
             exit(f'(in {data_file}) {jde.msg}: line {jde.lineno} column {jde.colno}')
-    def get_adv_display(self, id, title, desc, bg=None):
-        display = {
-            'icon': get_ingredient(self, id),
-            'title': get_name(title),
-            'description': desc
-        }
-        if bg: display['background'] = resolve(f'textures/blocks/{bg}.png')
-        return display
-    def get_adv_criteria_impossible(self):
-        return {'never': {'trigger': resolve('impossible')}}
-    def get_adv_criteria_have_items(self, ids):
-        return {'have_items': {'trigger': resolve('inventory_changed'), 'conditions': {'items': [get_ingredient(self, id) for id in ids]}}}
-    def get_adv_rewards(self, data):
-        return {type: [resolve(path, self) for path in paths] for type,paths in data}
     def init_root_advancement(self, icon, description, background='stone'):
-        self.set('root', Advancement(display=self.get_adv_display(icon, self.name, description, background), criteria=self.get_adv_criteria_impossible()))
+        self.set('root', Advancement(display=self.adv.display(icon, self.name, description, background), criteria=self.adv.criteria_impossible()))
     def process_data(self):
         self.__load_dependancies()
         self.functions['load'] = Load(self, self.__try_data('objectives'))
@@ -64,7 +70,7 @@ class DataPacker(DataPack):
     def recipes(self):
         data = self.__try_data('recipes')
         if not data: return
-        self.set('recipes/root', Advancement(display=self.get_adv_display('piston', 'Recipe root', 'Recipe root'), criteria=self.get_adv_criteria_impossible()))
+        self.set('recipes/root', Advancement(display=self.adv.display('piston', 'Recipe root', 'Recipe root'), criteria=self.adv.criteria_impossible()))
         self.functions['tick'].add_text(f'advancement revoke @a from {resolve("recipes/root", self)}\n')
         for path, data in data.items():
             shaped = len(data) == 3
@@ -86,9 +92,9 @@ class DataPacker(DataPack):
                 title = 'Craftable '+get_name(icon_id)
                 advancement = Advancement(
                     parent=resolve('recipes/root', self),
-                    rewards=self.get_adv_rewards([['recipes', [path]]]),
-                    display=self.get_adv_display(icon_id, title, title),
-                    criteria=self.get_adv_criteria_have_items(data[1])
+                    rewards=self.adv.rewards([['recipes', [path]]]),
+                    display=self.adv.display(icon_id, title, title),
+                    criteria=self.adv.criteria_have_items(data[1])
                 )
                 [advancement.display.setdefault(key, not '_' in key) for  key in ['announce_to_chat', 'hidden', 'show_toast']]
                 self.set('recipes/'+path, advancement)
