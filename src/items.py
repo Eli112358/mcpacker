@@ -89,7 +89,7 @@ class Item(object):
             entry.pop('functions')
         return entry
     def trade(self):
-        return f'id:{quote(self.id)},Count:{self.count}' + f',nbt:{self.__get_fixed_nbt()}' if self.nbt else ''
+        return f'id:{quote(self.id)},Count:{self.count}' + (f',nbt:{self.__get_fixed_nbt()}' if self.nbt else '')
     def give(self):
         return self.id + (self.__get_fixed_nbt() if self.nbt else '') + (' '+self.count if self.count > 1  else '')
 

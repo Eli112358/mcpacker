@@ -7,7 +7,7 @@ from .items import *
 
 @dataclass
 class Trade(object):
-    template = '{{buy:{},{}sell:{},rewardExp:{},maxUses:{},uses:{},xp:{},priceMultiplier:{},specialPrice:{},demand:{}}}'
+    template = '{{buy:{{{}}},{}sell:{{{}}},rewardExp:{},maxUses:{},uses:{},xp:{},priceMultiplier:{},specialPrice:{},demand:{}}}'
 
     buy: Item
     sell: Item
@@ -22,7 +22,7 @@ class Trade(object):
     def dump(self):
         values = [
             self.buy.trade(),
-            'buyB:{},'.format(self.buyB.trade()) if self.buyB else '',
+            f'buyB:{{{self.buyB.trade()}}},' if self.buyB else '',
             self.sell.trade(),
             self.rewardExp,
             self.maxUses,
