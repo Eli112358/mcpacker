@@ -18,7 +18,7 @@ wood_types = [
 quote = lambda s: f'"{s}"'
 escape = lambda s: s.replace('\\', '\\\\').replace('"', '\\"')
 custom_name = lambda name: String(quote(escape(quote(name))))
-flatten = lambda name: re.sub('_{2,}', ' ', re.sub('[ .,\'"\\/#!$%^&*;:{}=-`~()]', '_', name))
+flatten = lambda name: re.sub('_{2,}', ' ', re.sub('[ .,\'"\\/#!$%^&*;:{}=\-`~()]', '_', name)).lower()
 resolve = lambda path, pack=None, namespace='minecraft': f'{pack.name if pack else namespace}:{path}'
 get_pool = lambda rolls=1, entries=[]: copy.deepcopy({'rolls': rolls, 'entries': entries})
 get_entry = lambda type='item', name=resolve('stone'): copy.deepcopy({'type': type, 'name': name})

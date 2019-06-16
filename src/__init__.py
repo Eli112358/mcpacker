@@ -54,13 +54,14 @@ class DataPacker(DataPack):
         super().dump('out', overwrite=True)
         if self.progress_logging: print('[dump] Complete.')
     def get_data(self, name):
+        file = f'data/{name}.json'
         try:
-            with open(f'data/{name}.json') as json_data: return json.load(json_data)
+            with open(file) as json_data: return json.load(json_data)
         # data file is optional: return empty dict if it does not exist
         except FileNotFoundError as fnf: return {}
         # but still catch JSONDecodeError
         except json.decoder.JSONDecodeError as jde:
-            exit(f'(in {data_file}) {jde.msg}: line {jde.lineno} column {jde.colno}')
+            exit(f'(in {file}) {jde.msg}: line {jde.lineno} column {jde.colno}')
     def init_root_advancement(self, icon, description, background='stone'):
         self.set('root', Advancement(display=self.adv.display(icon, self.name, description, background), criteria=self.adv.criteria_impossible()))
     def process_data(self):
