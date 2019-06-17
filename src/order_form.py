@@ -6,8 +6,6 @@ import math
 
 server_name = os.environ.get('minecraft_server_name', '')
 
-def last(array):
-    return array[len(array)-1]
 def get_quantity(count):
     remainder = int(count % 64)
     stacks = int((count - remainder) / 64)
@@ -62,10 +60,10 @@ class OrderForm(object):
         self.result = result
         self.requirements = requirements
         self.stages = [Stage(self.result, self.requirements[0:])]
-        while not last(self.stages).complete:
-            self.stages.append(last(self.stages).next())
+        while not self.stages[-1].complete:
+            self.stages.append(self.stages[-1].next())
     def completed(self, villager):
-        villager.trades.append(last(self.stages).get_trade())
+        villager.trades.append(self.stages[-1].get_trade())
     def progress(self, villager):
         for stage in self.stages:
             if not stage.complete:
