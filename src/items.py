@@ -40,6 +40,11 @@ def get_tag_entry(pack, name):
         ('#' + resolve(name[1:])),
         name.replace('##', f'#{pack.name}:')
     ]).dump()
+def set_nbt_list(nbt, name, pattern='', data=[]):
+    nbt[name] = List[Compound]([parse_nbt(pattern.format(*value)) for value in data[0:]])
+def set_enchantments(nbt, list=[['', 1]], stored=False):
+    prefix = 'Stored' if stored else ''
+    set_nbt_list(nbt, f'{prefix}Enchantments', '{{id:"{}",lvl:{}}}', list)
 
 class Switch(object):
     def __init__(self, max, check, cases):
@@ -48,16 +53,6 @@ class Switch(object):
         self.cases = cases
     def dump(self):
         return self.cases[sum([self.check(i) for i in range(self.max)])]
-
-class NbtList(Compound):
-    def __init__(self, name, pattern='', data=[]):
-        super().__init__()
-        self[name] = List[Compound]([parse_nbt(pattern.format(*value)) for value in data[0:]])
-
-class Enchantments(NbtList):
-    def __init__(self, list=[['', 1]], stored=False):
-        prefix = 'Stored' if stored else ''
-        super().__init__(f'{prefix}Enchantments', '{{id:"{}",lvl:{}}}', list)
 
 class Item(object):
     def __init__(self, id, count=1, nbt=None):
@@ -114,7 +109,7 @@ class BankNote(Item):
         nbt['display'] = Compound()
         nbt['display']['Name'] = custom_name(value + ' Bank Note')
         nbt['display']['Lore'] = List[String](['Official Bank Note' + lore_suffix])
-        nbt.merge(Enchantments())
+        set_enchantments(nbt)
         super().__init__('paper', count, nbt)
 
 class EnchantedBook(Item):
@@ -122,5 +117,5 @@ class EnchantedBook(Item):
         nbt = Compound()
         if display:
             nbt['display'] = display
-        nbt.merge(Enchantments(list, True))
+        set_enchantments(nbt, list, True)
         super().__init__('enchanted_book', 1, nbt)
