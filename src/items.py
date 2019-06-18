@@ -46,7 +46,7 @@ def set_enchantments(nbt, list=[['', 1]], stored=False):
     prefix = 'Stored' if stored else ''
     set_nbt_list(nbt, f'{prefix}Enchantments', '{{id:"{}",lvl:{}}}', list)
 
-class Switch(object):
+class Switch():
     def __init__(self, max, check, cases):
         self.max = max
         self.check = check
@@ -54,7 +54,7 @@ class Switch(object):
     def dump(self):
         return self.cases[sum([self.check(i) for i in range(self.max)])]
 
-class Item(object):
+class Item():
     def __init__(self, id, count=1, nbt=None):
         self.id = resolve(id)
         self.count = count

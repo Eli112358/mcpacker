@@ -54,7 +54,7 @@ class Stage(Item):
         item = self.items[0]
         return Trade(self, self.next(), item.stack(min(item.count, 64)))
 
-class OrderForm(object):
+class OrderForm():
     def __init__(self, price, result, requirements = []):
         self.price = BankNote(price[0], value=price[1])
         self.result = result

@@ -6,7 +6,7 @@ import copy
 from .items import *
 
 @dataclass
-class Trade(object):
+class Trade():
     template = '{{buy:{{{}}},{}sell:{{{}}},rewardExp:{},maxUses:{},uses:{},xp:{},priceMultiplier:{},specialPrice:{},demand:{}}}'
 
     buy: Item
@@ -35,7 +35,7 @@ class Trade(object):
         return self.template.format(*values)
 
 @dataclass
-class Villager(object):
+class Villager():
     template = 'summon villager {} {{CustomName:{},VillagerData:{{level:8,profession:{},type:{}}},Tags:[{}],{},DeathLootTable:{},CanPickUpLoot:0,Offers:{{Recipes:[{}]}}}}'
 
     name: str

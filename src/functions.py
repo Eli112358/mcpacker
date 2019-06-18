@@ -22,7 +22,7 @@ colors = [
     "yellow"
 ]
 
-class FunctionWrapper(object):
+class FunctionWrapper():
     def __init__(self, body=""):
         self.function = Function(body)
     def add_text(self, text):
