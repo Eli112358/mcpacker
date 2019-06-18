@@ -5,6 +5,7 @@ from nbtlib import (parse_nbt, serialize_tag)
 from nbtlib.tag import (Compound, List, String)
 
 server_name = os.environ.get('minecraft_server_name', '')
+currency_name = os.environ.get('minecraft_currency_name', 'Bank Note')
 
 wood_types = [
     'oak',
@@ -104,11 +105,11 @@ class BankNote(Item):
             index += len(self.denominations)
         if value == None:
             value = self.denominations[index]
-        lore_suffix = (' of ' + server_name) if server_name else ''
-        nbt = Compound()
-        nbt['display'] = Compound()
-        nbt['display']['Name'] = custom_name(value + ' Bank Note')
-        nbt['display']['Lore'] = List[String](['Official Bank Note' + lore_suffix])
+        lore_suffix = f' of {server_name}' if server_name else ''
+        nbt = Compound(dict(display=dict(
+            Name=custom_name(f'{value} {currency_name}'),
+            Lore=List[String]([f'Official {currency_name}{lore_suffix}'])
+        )))
         set_enchantments(nbt)
         super().__init__('paper', count, nbt)
 
