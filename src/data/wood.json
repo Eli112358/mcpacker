@@ -1,0 +1,10 @@
+{
+	"wood_types": [
+		"oak",
+		"spruce",
+		"birch",
+		"jungle",
+		"acacia",
+		"dark_oak"
+	]
+}

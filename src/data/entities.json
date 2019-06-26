@@ -1,0 +1,68 @@
+{
+	"animals": [
+		"cat",
+		"cow",
+		"donkey",
+		"fox",
+		"horse",
+		"llama",
+		"mule",
+		"mooshroom",
+		"ocelot",
+		"panda",
+		"pig",
+		"polar_bear",
+		"rabbit",
+		"sheep",
+		"wolf"
+	],
+	"birds": [
+		"bat",
+		"chicken",
+		"parrot"
+	],
+	"aquatic": [
+		"cod",
+		"dolphin",
+		"guardian",
+		"pufferfish",
+		"salmon",
+		"squid",
+		"tropical_fish",
+		"turtle"
+	],
+	"hostile": [
+		"blaze",
+		"cave_spider",
+		"creeper",
+		"elder_guardian",
+		"enderman",
+		"endermite",
+		"ghast",
+		"guardian",
+		"magma_cube",
+		"phantom",
+		"shulker",
+		"silverfish",
+		"slime",
+		"spider",
+		"vex",
+		"witch"
+	],
+	"illager": [
+		"evoker",
+		"pillager",
+		"ravager",
+		"vindicator"
+	],
+	"undead": [
+		"drowned",
+		"husk",
+		"skeleton",
+		"stray",
+		"wither_skeleton",
+		"zombie_pigman",
+		"zombie_villager",
+		"zombie"
+	]
+}

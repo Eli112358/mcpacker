@@ -1,20 +1,21 @@
 import os
 import copy
 import re
+import json
+import pkg_resources
+
 from nbtlib import (parse_nbt, serialize_tag)
 from nbtlib.tag import (Compound, List, String)
 
 server_name = os.environ.get('minecraft_server_name', '')
 currency_name = os.environ.get('minecraft_currency_name', 'Bank Note')
 
-wood_types = [
-    'oak',
-    'spruce',
-    'birch',
-    'jungle',
-    'acacia',
-    'dark_oak'
-]
+def get_pkg_data(path):
+    with open(pkg_resources.resource_filename(__name__, f'data/{path}')) as data:
+        return json.load(data)
+
+stack_data = get_pkg_data('items.json')
+wood_types = get_pkg_data('wood.json')['wood_types']
 
 quote = lambda s: f'"{s}"'
 escape = lambda s: s.replace('\\', '\\\\').replace('"', '\\"')
@@ -46,6 +47,15 @@ def set_nbt_list(nbt, name, pattern='', data=[]):
 def set_enchantments(nbt, list=[['', 1]], stored=False):
     prefix = 'Stored' if stored else ''
     set_nbt_list(nbt, f'{prefix}Enchantments', '{{id:"{}",lvl:{}}}', list)
+def get_max_stack(id):
+    values = {'non_stackable': 1, 'stack_16': 16}
+    for key,value in values.items():
+        if id in stack_data[key]: return value
+    for key,value in values.items():
+        for entry in stack_data[key]:
+            if (entry[0]=='_' and id.endswith(entry)) or (entry[-1]=='_' and id.startswith(entry)):
+                return value
+    return 64
 
 class Switch():
     def __init__(self, max, check, cases):
@@ -65,10 +75,17 @@ class Item():
             if 'Name' in self.nbt['display']:
                 return get_name(serialize_tag(self.nbt['display']['Name']))
         return get_name(self.id)
-    def stack(self, count):
-        item = copy.deepcopy(self)
-        item.count = count
-        return item
+    def stack(self, count=0, clone=True, fixed=True):
+        if count==0 and not fixed:
+            return get_max_stack(self.id)
+        if count==0 and fixed:
+            return min(self.count, self.stack(fixed=False))
+        fixed_count = count if not fixed else min(count, self.stack(fixed=False))
+        if clone:
+            item = copy.deepcopy(self)
+            item.count = fixed_count
+            return item
+        self.count += fixed_count
     def __get_fixed_nbt(self):
         return re.sub("(?<=:)'|'(?=[,}])", '', serialize_tag(self.nbt, compact=True)).replace('\\\\', '\\')
     def loot(self):
@@ -85,7 +102,7 @@ class Item():
             entry.pop('functions')
         return entry
     def trade(self):
-        return f'id:{quote(self.id)},Count:{self.count}' + (f',nbt:{self.__get_fixed_nbt()}' if self.nbt else '')
+        return f'id:{quote(self.id)},Count:{self.stack()}' + (f',nbt:{self.__get_fixed_nbt()}' if self.nbt else '')
     def give(self):
         return self.id + (self.__get_fixed_nbt() if self.nbt else '') + (' '+self.count if self.count > 1  else '')
 

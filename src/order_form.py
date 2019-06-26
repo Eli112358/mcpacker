@@ -1,8 +1,9 @@
-from mcpacker.items import *
-from mcpacker.villager import Trade
 import os
 import copy
 import math
+
+from mcpacker.items import *
+from mcpacker.villager import Trade
 
 server_name = os.environ.get('minecraft_server_name', '')
 
@@ -41,8 +42,8 @@ class Stage(Item):
             self.nbt.display.lore.append([f' - {get_quantity(item.count)}: {item.get_name()}'])
     def next(self):
         next_items = self.items[0:]
-        if next_items[0].count > 64:
-            next_items[0].count -= 64
+        if next_items[0].count > next_items[0].stack(fixed=False):
+            next_items[0].count -= next_items[0].stack(fixed=False)
         else:
             next_items = next_items[1:]
         if self.next_stage == None:
@@ -52,7 +53,7 @@ class Stage(Item):
         if self.complete:
             return Trade(self, self.result)
         item = self.items[0]
-        return Trade(self, self.next(), item.stack(min(item.count, 64)))
+        return Trade(self, self.next(), item.stack(item.count))
 
 class OrderForm():
     def __init__(self, price, result, requirements = []):

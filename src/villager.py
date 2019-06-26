@@ -1,7 +1,8 @@
-from mcpack import (Function, FunctionTag)
 from typing import Optional
 from dataclasses import (dataclass, field)
 import copy
+
+from mcpack import (Function, FunctionTag)
 
 from .items import *
 

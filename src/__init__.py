@@ -1,6 +1,7 @@
-from mcpack import (DataPack, Advancement, Recipe)
 import copy
 import json
+
+from mcpack import (DataPack, Advancement, Recipe)
 
 from .functions import *
 from .items import *
