@@ -21,7 +21,7 @@ class Advancement_Args():
         return display
     def criteria(self, name, trigger, conditions=None):
         criteria = {f'{name}': {'trigger': resolve(trigger)}}
-        if conditions: criteria['conditions'] = conditions
+        if conditions: criteria[f'{name}']['conditions'] = conditions
         return criteria
     def criteria_impossible(self):
         return self.criteria('never', 'impossible')
