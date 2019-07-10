@@ -1,10 +1,11 @@
-from distutils.core import setup
+from setuptools import setup
 
 setup(
     name='mcpacker',
-    version='0.1',
+    version='0.2',
     description="Wrapper for vberlier's mcpack",
     author='Eli112358',
+    url='https://github.com/Eli112358/mcpacker',
     packages=['mcpacker'],
     package_dir={'mcpacker': 'src'},
     requires=[
@@ -12,5 +13,10 @@ setup(
         'nbtlib'
     ],
     provides=['mcpacker'],
-    package_data={'mcpacker': ['data/*.json']}
+    package_data={'mcpacker': ['data/*.json']},
+    classifiers=[
+        'Programming Language :: Python 3',
+        'License :: OSI Approved :: MIT License',
+        'Operating System :: OS Independant'
+    ]
 )

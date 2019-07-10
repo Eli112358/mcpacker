@@ -19,10 +19,16 @@ class Advancement_Args():
         }
         if bg: display['background'] = resolve(f'textures/blocks/{bg}.png')
         return display
+    def criteria(self, name, trigger, conditions=None):
+        criteria = {f'{name}': {'trigger': resolve(trigger)}}
+        if conditions: criteria['conditions'] = conditions
+        return criteria
     def criteria_impossible(self):
-        return {'never': {'trigger': resolve('impossible')}}
+        return self.criteria('never', 'impossible')
+    def criteria_item(self, name, trigger, id):
+        return self.criteria(name, trigger, {'item': get_ingredient(self.pack, id)})
     def criteria_have_items(self, ids):
-        return {'have_items': {'trigger': resolve('inventory_changed'), 'conditions': {'items': [get_ingredient(self.pack, id) for id in ids]}}}
+        return self.criteria('have_items', 'inventory_changed', {'items': [get_ingredient(self.pack, id) for id in ids]})
     def rewards(self, data):
         return {type: [resolve(path, self.pack) for path in paths] for type,paths in data}
 
