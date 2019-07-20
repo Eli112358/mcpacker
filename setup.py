@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='mcpacker',
-    version='0.2.1',
+    version='0.3',
     description="Wrapper for vberlier's mcpack",
     author='Eli112358',
     url='https://github.com/Eli112358/mcpacker',
@@ -17,6 +17,6 @@ setup(
     classifiers=[
         'Programming Language :: Python 3',
         'License :: OSI Approved :: MIT License',
-        'Operating System :: OS Independant'
+        'Operating System :: OS Independent'
     ]
 )
