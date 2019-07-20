@@ -1,9 +1,5 @@
-import os
-import copy
-import math
-
-from mcpacker.items import *
-from mcpacker.villager import Trade
+from .items import *
+from .villager import Trade
 
 server_name = os.environ.get('minecraft_server_name', '')
 
@@ -49,7 +45,7 @@ class Stage(Item):
             next_items[0].count -= next_items[0].stack(fixed=False)
         else:
             next_items = next_items[1:]
-        if self.next_stage == None:
+        if self.next_stage is None:
             self.next_stage = Stage(self.result, next_items)
         return self.next_stage
     def get_trade(self):
@@ -58,8 +54,10 @@ class Stage(Item):
         item = self.items[0]
         return Trade(self, self.next(), item.stack(item.count))
 
-class OrderForm():
-    def __init__(self, price, result, requirements = []):
+class OrderForm:
+    def __init__(self, price, result, requirements=None):
+        if requirements is None:
+            requirements = []
         self.price = BankNote(price[0], value=price[1])
         self.result = result
         self.requirements = requirements

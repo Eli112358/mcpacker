@@ -1,13 +1,12 @@
-from typing import Optional
 from dataclasses import (dataclass, field)
-import copy
+from typing import Optional
 
 from mcpack import (Function, FunctionTag)
 
 from .items import *
 
 @dataclass
-class Trade():
+class Trade:
     template = '{{buy:{{{}}},{}sell:{{{}}},rewardExp:{},maxUses:{},uses:{},xp:{},priceMultiplier:{},specialPrice:{},demand:{}}}'
 
     buy: Item
@@ -36,7 +35,7 @@ class Trade():
         return self.template.format(*values)
 
 @dataclass
-class Villager():
+class Villager:
     template = 'summon villager {} {{CustomName:{},VillagerData:{{level:8,profession:{},type:{}}},Tags:[{}],{},DeathLootTable:{},CanPickUpLoot:0,Offers:{{Recipes:[{}]}}}}'
 
     name: str
@@ -44,8 +43,8 @@ class Villager():
     profession: str
     biome: Optional[str] = 'plains'
     trades: Optional[list] = field(default_factory=list)
-    def set(self, pack, root_name, tag_name):
-        get_list = lambda func,values: ','.join([func(value) for value in values])
+    def set(self, _pack, root_name, tag_name):
+        get_list = lambda func, _values: ','.join([func(value) for value in _values])
         values = [
             self.coords,
             quote(escape(quote(get_name(self.name)))),
@@ -56,8 +55,8 @@ class Villager():
             quote(resolve('empty')),
             get_list(lambda v: v.dump(), self.trades)
         ]
-        path = tag_name+'/'+self.name
-        pack.set(path, Function(self.template.format(*values)))
-        if not tag_name in pack[root_name].function_tags:
-            pack.set(resolve(tag_name, None, root_name), FunctionTag())
-        pack[root_name].function_tags[tag_name].values.append(resolve(path, pack))
+        _path = tag_name + '/' + self.name
+        _pack.set(_path, Function(self.template.format(*values)), )
+        if not tag_name in _pack[root_name].function_tags:
+            _pack.set(resolve(tag_name, None, root_name), FunctionTag(), )
+        _pack[root_name].function_tags[tag_name].values.append(resolve(_path, _pack))
