@@ -1,3 +1,6 @@
+import pathlib
+import zipfile
+
 from mcpack import (DataPack, Advancement, Recipe)
 
 from .functions import *
@@ -31,7 +34,7 @@ class AdvancementArgs:
         return {_type: [resolve(_path, self.pack) for _path in paths] for _type, paths in data}
 
 class DataPacker(DataPack):
-    def __init__(self, _name, description, auto_process_data=True, progress_logging=True):
+    def __init__(self, _name, description, auto_process_data=True, progress_logging=True, compress=True):
         super().__init__(_name, description)
         self.data = self.get_data(self.name)
         self.tag = GlobalName(self.name)
@@ -39,6 +42,7 @@ class DataPacker(DataPack):
         self.functions['tick'] = Tick(self)
         self.adv = AdvancementArgs(self)
         self.progress_logging = progress_logging
+        self.compress = compress
         if auto_process_data: self.process_data()
         if self.progress_logging: print('DataPacker Initialized.')
     def add_pool(self, _path, pool):
@@ -57,6 +61,19 @@ class DataPacker(DataPack):
         Built(self).set()
         super().dump('out', overwrite=True)
         if self.progress_logging: print('[dump] Complete.')
+        if not self.compress: return
+        if self.progress_logging: print('[zip] Starting...')
+        zip_path = pathlib.Path(f'{self.name}.zip')
+        if os.path.exists(zip_path):
+            os.remove(zip_path)
+        _zip = zipfile.ZipFile(zip_path, 'w')
+        out_path = pathlib.Path(f'out/{self.name}')
+        for root, dirs, files in os.walk(out_path):
+            rel_dir = os.path.relpath(root, out_path)
+            for file in files:
+                _zip.write(os.path.join(root, file), os.path.join(rel_dir, file))
+        _zip.close()
+        if self.progress_logging: print('[zip] Complete.')
     @staticmethod
     def get_data(_name):
         file = f'data/{_name}.json'
@@ -72,7 +89,8 @@ class DataPacker(DataPack):
     def process_data(self):
         self.__load_dependencies()
         self.functions['load'] = Load(self, self.__try_data('objectives'))
-        [self.functions.add(relpath) for relpath in self.__try_data('functions')]
+        function_data = self.__try_data('functions')
+        if function_data: [self.functions.add(relpath) for relpath in function_data]
     def recipes(self):
         recipes = self.__try_data('recipes')
         if not recipes: return
