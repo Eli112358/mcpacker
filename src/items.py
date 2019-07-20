@@ -42,11 +42,11 @@ def get_tag_entry(pack, name):
         ('#' + resolve(name[1:])),
         name.replace('##', f'#{pack.name}:')
     ]).dump()
-def set_nbt_list(nbt, name, pattern='', data=[]):
-    nbt[name] = List[Compound]([parse_nbt(pattern.format(*value)) for value in data[0:]])
+def set_nbt_list(nbt, name, pattern='', data=[], parse=False):
+    nbt[name] = List[Compound if parse else String]([parse_nbt(pattern.format(*value)) if parse else pattern.format(*value) for value in data[0:]])
 def set_enchantments(nbt, list=[['', 1]], stored=False):
     prefix = 'Stored' if stored else ''
-    set_nbt_list(nbt, f'{prefix}Enchantments', '{{id:"{}",lvl:{}}}', list)
+    set_nbt_list(nbt, f'{prefix}Enchantments', '{{id:"{}",lvl:{}}}', list, True)
 def get_max_stack(id):
     values = {'non_stackable': 1, 'stack_16': 16}
     for key,value in values.items():
