@@ -20,15 +20,15 @@ def get_quantity(count):
 
 class Stage(Item):
     def __init__(self, result, items):
-        super().__init__('paper', 1, ItemNbt(ItemDisplay(
-                f'Order Form: {result.get_name()}',
-                [
-                    'Official Order Form',
-                    'Required items:'
-                ]
-            ), [],
-            [Enchantments()]
-        ))
+        nbt = Compound(dict(Display=dict(
+            Name=custom_name(f'Order Form: {result.get_name()}'),
+            Lore=List[String]([
+                'Official Order Form',
+                'Required items:'
+            ])
+        )))
+        set_enchantments(nbt)
+        super().__init__('paper', 1, nbt)
         self.result = result
         self.items = items
         self.next_stage = None
