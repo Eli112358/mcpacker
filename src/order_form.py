@@ -7,14 +7,17 @@ from mcpacker.villager import Trade
 
 server_name = os.environ.get('minecraft_server_name', '')
 
-def get_quantity(count):
-    remainder = int(count % 64)
-    stacks = int((count - remainder) / 64)
+def get_quantity(item):
+    _max = get_max_stack(item.id)
+    if _max is 1:
+        return str(item.count)
+    remainder = int(item.count % _max)
+    stacks = int((item.count - remainder) / _max)
     cases = [
-        '',                         # both == 0
-        f'{remainder}',             # remainder > 0
-        f'{stacks}x64',             # stacks > 0
-        f'{stacks}x64 +{remainder}' # both > 0
+        '',                             # both == 0
+        f'{remainder}',                 # remainder > 0
+        f'{stacks}x{_max}',             # stacks > 0
+        f'{stacks}x{_max} +{remainder}' # both > 0
     ]
     return cases[((stacks > 0) << 1) | (remainder > 0)]
 
@@ -39,7 +42,7 @@ class Stage(Item):
             self.nbt.display.custom_name = 'Completed ' + self.nbt.display.custom_name
             self.nbt.display.lore[1] = ['Complete!']
         for item in self.items:
-            self.nbt.display.lore.append([f' - {get_quantity(item.count)}: {item.get_name()}'])
+            self.nbt.display.lore.append([f' - {get_quantity(item)}: {item.get_name()}'])
     def next(self):
         next_items = self.items[0:]
         if next_items[0].count > next_items[0].stack(fixed=False):
