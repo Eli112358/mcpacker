@@ -93,8 +93,10 @@ class Item:
             item.count = fixed_count
             return item
         self.count += fixed_count
-    def __get_fixed_nbt(self):
-        return re.sub("(?<=:)'|'(?=[,}])", '', serialize_tag(self.nbt, compact=True)).replace('\\\\', '\\')
+    def __get_fixed_nbt(self, _nbt=None):
+        if not _nbt:
+            _nbt = self.nbt
+        return re.sub("(?<=:)'|'(?=[,}])", '', serialize_tag(_nbt, compact=True)).replace('\\\\', '\\')
     def loot(self):
         entry = get_entry(name=self.id)
         entry['functions'] = []
@@ -104,7 +106,14 @@ class Item:
         if self.count > 1:
             add_function(self.count, 'count')
         if self.nbt:
-            add_function(self.__get_fixed_nbt(), 'tag', 'set_nbt')
+            nbt_copy = copy.deepcopy(self.nbt)
+            if 'display' in nbt_copy.keys():
+                if 'Name' in nbt_copy['display'].keys():
+                    add_function(nbt_copy['display']['Name'].replace('\\"', '').replace('"', ''), 'name', 'set_name')
+                if 'Lore' in nbt_copy['display'].keys():
+                    add_function(nbt_copy['display']['Lore'], 'lore', 'set_lore')
+                nbt_copy.pop('display')
+            add_function(self.__get_fixed_nbt(nbt_copy), 'tag', 'set_nbt')
         if len(entry['functions']) == 0:
             entry.pop('functions')
         return entry
