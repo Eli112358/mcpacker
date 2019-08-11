@@ -120,7 +120,13 @@ class Item:
     def trade(self):
         return f'id:{quote(self.id)},Count:{self.stack()}' + (f',nbt:{self.__get_fixed_nbt()}' if self.nbt else '')
     def give(self):
-        return self.id + (self.__get_fixed_nbt() if self.nbt else '') + (str(self.count) if self.count > 1  else '')
+        nbt_copy = copy.deepcopy(self.nbt)
+        fixed_nbt = ''
+        if 'display' in nbt_copy.keys() and 'Lore' in nbt_copy['display'].keys():
+            for i,line in enumerate(nbt_copy['display']['Lore']):
+                nbt_copy['display']['Lore'][i] = f'"\\"{line}\\""'
+            fixed_nbt = self.__get_fixed_nbt(nbt_copy).replace("'", '"').replace(r'""\""', r'"\"').replace(r'"\"""', r'\""')
+        return self.id + fixed_nbt + (str(self.count) if self.count > 1  else '')
 
 class BankNote(Item):
     denominations = [
