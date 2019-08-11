@@ -130,10 +130,10 @@ class BankNote(Item):
         if value is None:
             value = self.denominations[index]
         lore_suffix = f' of {server_name}' if server_name else ''
-        nbt = Compound(dict(display=dict(
+        nbt = Compound(dict(display=Compound(dict(
             Name=custom_name(f'{value} {currency_name}'),
             Lore=List[String]([f'Official {currency_name}{lore_suffix}'])
-        )))
+        ))))
         set_enchantments(nbt)
         super().__init__('paper', count, nbt)
 
