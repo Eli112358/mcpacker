@@ -63,7 +63,7 @@ class DataPacker(DataPack):
         if self.progress_logging: print('[dump] Complete.')
         if not self.compress: return
         if self.progress_logging: print('[zip] Starting...')
-        zip_path = pathlib.Path(f'{self.name}.zip')
+        zip_path = pathlib.Path(f'zip/{self.name}.zip')
         if os.path.exists(zip_path):
             os.remove(zip_path)
         _zip = zipfile.ZipFile(zip_path, 'w')
