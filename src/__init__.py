@@ -61,6 +61,8 @@ class DataPacker(DataPack):
         Built(self).set()
         super().dump('out', overwrite=True)
         if self.progress_logging: print('[dump] Complete.')
+        self.compress_zip()
+    def compress_zip(self):
         if not self.compress: return
         if self.progress_logging: print('[zip] Starting...')
         zip_path = pathlib.Path(f'zip/{self.name}.zip')
