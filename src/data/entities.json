@@ -55,12 +55,24 @@
 		"ravager",
 		"vindicator"
 	],
+	"skeleton": [
+		"skeleton",
+		"stray",
+		"wither_skeleton"
+	],
 	"undead": [
 		"drowned",
 		"husk",
 		"skeleton",
 		"stray",
 		"wither_skeleton",
+		"zombie_pigman",
+		"zombie_villager",
+		"zombie"
+	],
+	"zombie": [
+		"drowned",
+		"husk",
 		"zombie_pigman",
 		"zombie_villager",
 		"zombie"
