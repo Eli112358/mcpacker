@@ -96,13 +96,13 @@ class Item:
     def __get_fixed_nbt(self, _nbt=None):
         if not _nbt:
             _nbt = self.nbt
-        fixed_nbt = ''
-        if 'display' in _nbt.keys() and 'Lore' in _nbt['display'].keys():
-            for i,line in enumerate(_nbt['display']['Lore']):
-                _nbt['display']['Lore'][i] = f'"\\"{line}\\""'
-            fixed_nbt = re.sub("(?<=:)'|'(?=[,}])", '', serialize_tag(_nbt, compact=True)).replace('\\\\', '\\')
-            fixed_nbt = fixed_nbt.replace("'", '"').replace(r'""\""', r'"\"').replace(r'"\"""', r'\""')
-        return fixed_nbt
+        nbt_copy = copy.deepcopy(_nbt)
+        dq = '"'
+        if 'display' in nbt_copy.keys():
+            if 'Lore' in nbt_copy['display'].keys():
+                nbt_copy['display']['Lore'] = List[String]([f'"\\"{line.strip(dq)}\\""' for line in nbt_copy['display']['Lore']])
+            nbt_copy['display'] = Compound({k:v for k,v in nbt_copy['display'].items()})
+        return re.sub("(?<=:)'|'(?=[,}])", '', serialize_tag(nbt_copy, compact=True)).replace('\\\\', '\\').replace("'", '')
     def loot(self):
         entry = get_entry(name=self.id)
         entry['functions'] = []
@@ -112,14 +112,7 @@ class Item:
         if self.count > 1:
             add_function(self.count, 'count')
         if self.nbt:
-            nbt_copy = copy.deepcopy(self.nbt)
-            if 'display' in nbt_copy.keys():
-                if 'Name' in nbt_copy['display'].keys():
-                    add_function(nbt_copy['display']['Name'].replace('\\"', '').replace('"', ''), 'name', 'set_name')
-                if 'Lore' in nbt_copy['display'].keys():
-                    add_function(nbt_copy['display']['Lore'], 'lore', 'set_lore')
-                nbt_copy.pop('display')
-            add_function(self.__get_fixed_nbt(nbt_copy), 'tag', 'set_nbt')
+            add_function(self.__get_fixed_nbt(), 'tag', 'set_nbt')
         if len(entry['functions']) == 0:
             entry.pop('functions')
         return entry
