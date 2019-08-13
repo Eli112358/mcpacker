@@ -34,15 +34,16 @@ class AdvancementArgs:
         return {_type: [resolve(_path, self.pack) for _path in paths] for _type, paths in data}
 
 class DataPacker(DataPack):
-    def __init__(self, _name, description, auto_process_data=True, progress_logging=True, compress=True):
+    def __init__(self, _name, description, auto_process_data=True, compress=True, progress_logging=True, required_data=None):
         super().__init__(_name, description)
+        self.compress = compress
+        self.required_data = required_data if required_data else []
+        self.progress_logging = progress_logging
         self.data = self.get_data(self.name)
         self.tag = GlobalName(self.name)
         self.functions = Functions()
         self.functions['tick'] = Tick(self)
         self.adv = AdvancementArgs(self)
-        self.progress_logging = progress_logging
-        self.compress = compress
         if auto_process_data: self.process_data()
         if self.progress_logging: print('DataPacker Initialized.')
     def add_pool(self, _path, pool):
@@ -76,16 +77,16 @@ class DataPacker(DataPack):
                 _zip.write(os.path.join(root, file), os.path.join(rel_dir, file))
         _zip.close()
         if self.progress_logging: print('[zip] Complete.')
-    @staticmethod
-    def get_data(_name):
-        file = f'data/{_name}.json'
+    def get_data(self, _name):
+        data_path = pathlib.Path(f'data/{_name}.json')
         try:
-            with open(file) as json_data: return json.load(json_data)
-        # data file is optional: return empty dict if it does not exist
-        except FileNotFoundError: return {}
-        # but still catch JSONDecodeError
+            with open(data_path) as json_data: return json.load(json_data)
+        except FileNotFoundError as fnfe:
+            if _name in self.required_data:
+                exit(fnfe.strerror + ': ' + str(data_path))
+            return {}
         except json.decoder.JSONDecodeError as jde:
-            exit(f'(in {file}) {jde.msg}: line {jde.lineno} column {jde.colno}')
+            exit(f'(in {data_path}) {jde.msg}: line {jde.lineno} column {jde.colno}')
     def init_root_advancement(self, icon, description, background='stone'):
         self.set('root', Advancement(display=self.adv.display(icon, self.name, description, background), criteria=self.adv.criteria_impossible()))
     def process_data(self):
