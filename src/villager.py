@@ -5,10 +5,10 @@ from mcpack import (Function, FunctionTag)
 
 from .items import *
 
+
 @dataclass
 class Trade:
-    template = '{{buy:{{{}}},{}sell:{{{}}},rewardExp:{},maxUses:{},uses:{},xp:{},priceMultiplier:{},specialPrice:{},demand:{}}}'
-
+    template = get_pkg_data('villager.json')['Trade']
     buy: Item
     sell: Item
     buyB: Optional[Item] = None
@@ -19,6 +19,7 @@ class Trade:
     priceMultiplier: Optional[float] = 1.0
     specialPrice: Optional[int] = 0
     demand: Optional[int] = 0
+
     def dump(self):
         values = [
             self.buy.trade(),
@@ -34,17 +35,19 @@ class Trade:
         ]
         return self.template.format(*values)
 
+
 @dataclass
 class Villager:
-    template = 'summon villager {} {{CustomName:{},VillagerData:{{level:8,profession:{},type:{}}},Tags:[{}],{},DeathLootTable:{},CanPickUpLoot:0,Offers:{{Recipes:[{}]}}}}'
-
+    template = get_pkg_data('villager.json')['Villager']
     name: str
     coords: str
     profession: str
     biome: Optional[str] = 'plains'
     trades: Optional[list] = field(default_factory=list)
+
     def set(self, _pack, root_name, tag_name):
-        get_list = lambda func, _values: ','.join([func(value) for value in _values])
+        def get_list(func, _values):
+            return ','.join([func(value) for value in _values])
         values = [
             self.coords,
             quote(escape(quote(get_name(self.name)))),
@@ -57,6 +60,6 @@ class Villager:
         ]
         _path = tag_name + '/' + self.name
         _pack.set(_path, Function(self.template.format(*values)), )
-        if not tag_name in _pack[root_name].function_tags:
+        if tag_name not in _pack[root_name].function_tags:
             _pack.set(resolve(tag_name, None, root_name), FunctionTag(), )
         _pack[root_name].function_tags[tag_name].values.append(resolve(_path, _pack))

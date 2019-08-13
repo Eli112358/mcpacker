@@ -1,0 +1,6 @@
+{
+	"templates": {
+		"Trade": "{{buy:{{{}}},{}sell:{{{}}},rewardExp:{},maxUses:{},uses:{},xp:{},priceMultiplier:{},specialPrice:{},demand:{}}}",
+		"Villager": "summon villager {} {{CustomName:{},VillagerData:{{level:8,profession:{},type:{}}},Tags:[{}],{},DeathLootTable:{},CanPickUpLoot:0,Offers:{{Recipes:[{}]}}}}"
+	}
+}

@@ -10,89 +10,131 @@ from nbtlib.tag import (Compound, List, String)
 server_name = os.environ.get('minecraft_server_name', '')
 currency_name = os.environ.get('minecraft_currency_name', 'Bank Note')
 
+
 def get_pkg_data(path):
     with open(pkg_resources.resource_filename(__name__, f'data/{path}')) as data:
         return json.load(data)
 
+
 stack_data = get_pkg_data('items.json')
 wood_types = get_pkg_data('wood.json')['wood_types']
 
-quote = lambda s: f'"{s}"'
-escape = lambda s: s.replace('\\', '\\\\').replace('"', '\\"')
-custom_name = lambda name: String(quote(escape(quote(name))))
-flatten = lambda name: re.sub('_{2,}', ' ', re.sub('[ .,\'"\\\/#!$%^&*;:{}=\-`~()]', '_', name)).lower()
-resolve = lambda path, pack=None, namespace='minecraft': f'{pack.name if pack else namespace}:{path}'
+
+def quote(s):
+    return f'"{s}"'
+
+
+def escape(s):
+    return s.replace('\\', '\\\\').replace('"', '\\"')
+
+
+def custom_name(name):
+    return String(quote(escape(quote(name))))
+
+
+def flatten(name):
+    return re.sub('_{2,}', ' ', re.sub('[- .,\'"/#!$%^&*;:{}=`~()]', '_', name)).lower()
+
+
+def resolve(path, pack=None, namespace='minecraft'):
+    return f'{pack.name if pack else namespace}:{path}'
+
+
 def get_pool(rolls=1, entries=None):
     if entries is None:
         entries = []
     return copy.deepcopy({'rolls': rolls, 'entries': entries})
-get_entry = lambda _type='item', name=resolve('stone'): copy.deepcopy({'type': _type, 'name': name})
-get_range = lambda _min=0, _max=1: copy.deepcopy({'min': _min, 'max': _max})
+
+
+def get_entry(_type='item', name=resolve('stone')):
+    return copy.deepcopy({'type': _type, 'name': name})
+
+
+def get_range(_min=0, _max=1):
+    return copy.deepcopy({'min': _min, 'max': _max})
+
+
 def get_name(name):
     words = re.sub('[_ ]', ' ', name).split(' ')
     for i in range(len(words)):
         words[i] = words[i].capitalize()
     return ' '.join(words)
+
+
 def get_ingredient(pack, name):
-    return Switch(2, (lambda i: name[i]=='#'), [
+    return Switch(2, (lambda i: name[i] == '#'), [
         {'item': resolve(name)},
         {'tag': resolve(name[1:])},
         {'tag': resolve(name[2:], pack)}
     ]).dump()
+
+
 def get_tag_entry(pack, name):
-    return Switch(2, (lambda i: name[i]=='#'), [
+    return Switch(2, (lambda i: name[i] == '#'), [
         resolve(name),
         ('#' + resolve(name[1:])),
         name.replace('##', f'#{pack.name}:')
     ]).dump()
+
+
 def set_nbt_list(nbt, name, pattern='', data=None, parse=False):
     if data is None:
         data = []
-    nbt[name] = List[Compound if parse else String]([parse_nbt(pattern.format(*value)) if parse else pattern.format(*value) for value in data[0:]])
+    content = [parse_nbt(pattern.format(*value)) if parse else pattern.format(*value) for value in data[0:]]
+    nbt[name] = List[Compound if parse else String](content)
+
+
 def set_enchantments(nbt, _list=None, stored=False):
     if _list is None:
         _list = [['', 1]]
     prefix = 'Stored' if stored else ''
     set_nbt_list(nbt, f'{prefix}Enchantments', '{{id:"{}",lvl:{}}}', _list, True)
+
+
 def get_max_stack(_id):
     values = {'non_stackable': 1, 'stack_16': 16}
-    for key,value in values.items():
-        if _id in stack_data[key]: return value
-    for key,value in values.items():
+    for key, value in values.items():
+        if _id in stack_data[key]:
+            return value
+    for key, value in values.items():
         for entry in stack_data[key]:
-            if (entry[0] =='_' and _id.endswith(entry)) or (entry[-1] == '_' and _id.startswith(entry)):
+            if (entry[0] == '_' and _id.endswith(entry)) or (entry[-1] == '_' and _id.startswith(entry)):
                 return value
     return 64
+
 
 class Switch:
     def __init__(self, _max, check, cases):
         self.max = _max
         self.check = check
         self.cases = cases
+
     def dump(self):
         return self.cases[sum([self.check(i) for i in range(self.max)])]
+
 
 class Item:
     def __init__(self, _id, count=1, nbt=None):
         self.id = resolve(_id)
         self.count = count
         self.nbt = nbt
+
     def get_name(self):
         if 'display' in self.nbt:
             if 'Name' in self.nbt['display']:
                 return get_name(serialize_tag(self.nbt['display']['Name']))
         return get_name(self.id)
+
     def stack(self, count=0, clone=True, fixed=True):
-        if count==0 and not fixed:
-            return get_max_stack(self.id)
-        if count==0 and fixed:
-            return min(self.count, self.stack(fixed=False))
+        if count == 0:
+            return min(self.count, self.stack(fixed=False)) if fixed else get_max_stack(self.id)
         fixed_count = count if not fixed else min(count, self.stack(fixed=False))
         if clone:
             item = copy.deepcopy(self)
             item.count = fixed_count
             return item
         self.count += fixed_count
+
     def __get_fixed_nbt(self, _nbt=None):
         if not _nbt:
             _nbt = self.nbt
@@ -100,12 +142,16 @@ class Item:
         dq = '"'
         if 'display' in nbt_copy.keys():
             if 'Lore' in nbt_copy['display'].keys():
-                nbt_copy['display']['Lore'] = List[String]([f'"\\"{line.strip(dq)}\\""' for line in nbt_copy['display']['Lore']])
-            nbt_copy['display'] = Compound({k:v for k,v in nbt_copy['display'].items()})
-        return re.sub("(?<=:)'|'(?=[,}])", '', serialize_tag(nbt_copy, compact=True)).replace('\\\\', '\\').replace("'", '')
+                lore = [f'"\\"{line.strip(dq)}\\""' for line in nbt_copy['display']['Lore']]
+                nbt_copy['display']['Lore'] = List[String](lore)
+            nbt_copy['display'] = Compound({k: v for k, v in nbt_copy['display'].items()})
+        nbt_str = re.sub("(?<=:)'|'(?=[,}])", '', serialize_tag(nbt_copy, compact=True))
+        return nbt_str.replace('\\\\', '\\').replace("'", '')
+
     def loot(self):
         entry = get_entry(name=self.id)
         entry['functions'] = []
+
         def add_function(value, name, fname=None):
             fname = fname if fname else f'set_{name}'
             entry['functions'].append({'function': fname, f'{name}': value})
@@ -116,10 +162,13 @@ class Item:
         if len(entry['functions']) == 0:
             entry.pop('functions')
         return entry
+
     def trade(self):
         return f'id:{quote(self.id)},Count:{self.stack()}' + ((',tag:' + self.__get_fixed_nbt()) if self.nbt else '')
+
     def give(self):
-        return self.id + self.__get_fixed_nbt() + (str(self.count) if self.count > 1  else '')
+        return self.id + self.__get_fixed_nbt() + (str(self.count) if self.count > 1 else '')
+
 
 class BankNote(Item):
     denominations = [
@@ -132,6 +181,7 @@ class BankNote(Item):
         '1',
         '0.1'
     ]
+
     def __init__(self, count, index=0, value=None):
         if index < 0:
             index += len(self.denominations)
@@ -144,6 +194,7 @@ class BankNote(Item):
         ))))
         set_enchantments(nbt)
         super().__init__('paper', count, nbt)
+
 
 class EnchantedBook(Item):
     def __init__(self, _list, display=None):

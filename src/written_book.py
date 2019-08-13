@@ -1,4 +1,4 @@
-def get_text(text, color = 'black', bold = False):
+def get_text(text, color='black', bold=False):
     obj = {
         'text': text,
         'color': color
@@ -6,6 +6,7 @@ def get_text(text, color = 'black', bold = False):
     if bold:
         obj['bold'] = True
     return obj
+
 
 def get_link(text, color, action, value):
     return {
