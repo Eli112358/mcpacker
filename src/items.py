@@ -26,7 +26,7 @@ def get_pool(rolls=1, entries=None):
     if entries is None:
         entries = []
     return copy.deepcopy({'rolls': rolls, 'entries': entries})
-get_entry = lambda type_='item', name=resolve('stone'): copy.deepcopy({'type': type_, 'name': name})
+get_entry = lambda _type='item', name=resolve('stone'): copy.deepcopy({'type': _type, 'name': name})
 get_range = lambda _min=0, _max=1: copy.deepcopy({'min': _min, 'max': _max})
 def get_name(name):
     words = re.sub('[_ ]', ' ', name).split(' ')
