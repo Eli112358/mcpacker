@@ -37,7 +37,7 @@ def flatten(name):
 
 
 def resolve(path, pack=None, namespace='minecraft'):
-    return f'{pack.name if pack else namespace}:{path}'
+    return f'{pack.name if not pack is None else namespace}:{path}'
 
 
 def get_pool(rolls=1, entries=None):
