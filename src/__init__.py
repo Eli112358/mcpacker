@@ -1,11 +1,14 @@
+import dill as pickle
 import pathlib
+import time
 import zipfile
 
-from mcpack import (DataPack, Advancement, Recipe)
+from mcpack import (DataPack, Advancement, Recipe, Structure)
 
 from .functions import *
 from .items import *
 
+max_load_milliseconds = os.environ.get('minecraft_maximum_load_milliseconds', 500)
 alphabet_keys = 'abcdefghi'
 
 
@@ -45,13 +48,18 @@ class AdvancementArgs:
         return {_type: [resolve(_path, self.pack) for _path in paths] for _type, paths in data}
 
 
-class DataPacker(DataPack):
+class DataPacker(DataPack, dict, object):
     def __init__(self, _name, description, auto_process_data=True, compress=True,
-                 progress_logging=True, required_data=None):
+                 progress_logging=False, required_data=None, use_pickle=True, dependencies_dir=None):
         super().__init__(_name, description)
         self.compress = compress
-        self.required_data = required_data if required_data else []
+        self.dependencies_dir = dependencies_dir
+        if not dependencies_dir:
+            self.dependencies_dir = pathlib.Path('out')
         self.progress_logging = progress_logging
+        self.required_data = required_data if required_data else []
+        self.structures_to_load = {}
+        self.use_pickle = use_pickle
         self.data = self.get_data(self.name)
         self.tag = GlobalName(self.name)
         self.functions = Functions()
@@ -130,6 +138,100 @@ class DataPacker(DataPack):
             criteria=self.adv.criteria_impossible()
         ))
 
+    @classmethod
+    def cast(cls, _pack):
+        self = cls(_pack.name, _pack.description)
+        for attr in ['pack_format', 'namespaces']:
+            setattr(self, attr, getattr(_pack, attr))
+        return self
+
+    @classmethod
+    def load(cls, name, progress_logging=False, use_pickle=True, logging_prefix='', load_dir=None):
+        if not load_dir:
+            load_dir = pathlib.Path('out')
+        if use_pickle:
+            self = cls.unpickle(pathlib.Path('pickle') / (name + '.pickle'), progress_logging, logging_prefix)
+            if self is not None:
+                return self
+        if progress_logging:
+            print(f"[{logging_prefix}load] Loading '{name}' ...")
+        start = time.time()
+        self = DataPacker.cast(super().load(load_dir / name))
+        end = time.time()
+        if progress_logging:
+            print(f'[{logging_prefix}load] Took {int((end - start) * 1000)} milliseconds')
+        if (end - start) * 1000 > max_load_milliseconds and use_pickle:
+            if self.progress_logging:
+                print(f"[{logging_prefix}load] Pickling '{self.name}' as it took too long to load...")
+            self.pickle(pathlib.Path('pickle') / (self.name + '.pickle'))
+        return self
+
+    def pickle(self, path, logging_prefix=''):
+        structures_present = any([namespace.structures for ns_name, namespace in self.namespaces.items()])
+        saved_structures = {}
+        if structures_present:
+            if self.progress_logging:
+                print(f'[{logging_prefix}pickling] Saving structures to separate lists...')
+            start = time.time()
+            for ns_name, namespace in self.namespaces.items():
+                self.structures_to_load[ns_name] = []
+                saved_structures[ns_name] = {}
+                for struct_path, structure in namespace.structures.items():
+                    self.structures_to_load[ns_name].append(struct_path)
+                    saved_structures[ns_name][struct_path] = structure
+            end = time.time()
+            if self.progress_logging:
+                print(f'[{logging_prefix}pickling] Took {int((end - start) * 1000)} milliseconds')
+                print(f'[{logging_prefix}pickling] Removing structures...')
+            start = time.time()
+            for ns, structures in self.structures_to_load.items():
+                for struct_path in structures:
+                    self.namespaces[ns].structures.pop(struct_path)
+            end = time.time()
+            if self.progress_logging:
+                print(f'[{logging_prefix}pickling] Took {int((end - start) * 1000)} milliseconds')
+        if self.progress_logging:
+            print(f'[{logging_prefix}pickling] Writing pickle file...')
+        start = time.time()
+        pickle.dump(self, open(path, 'wb'))
+        end = time.time()
+        if self.progress_logging:
+            print(f'[{logging_prefix}pickling] Took {int((end - start) * 1000)} milliseconds')
+        if structures_present:
+            if self.progress_logging:
+                print(f'[{logging_prefix}pickling] Restoring structures...')
+            start = time.time()
+            for s_path, structure in saved_structures.items():
+                self[s_path] = structure
+            end = time.time()
+            if self.progress_logging:
+                print(f'[{logging_prefix}pickling] Took {int((end - start) * 1000)} milliseconds')
+
+    @classmethod
+    def unpickle(cls, path, progress_logging=False, logging_prefix=''):
+        if not os.path.exists(path):
+            return None
+        if progress_logging:
+            print(f'[{logging_prefix}unpickling] Found pickle, unpickling...')
+        start = time.time()
+        self = pickle.load(open(path, 'rb'))
+        end = time.time()
+        if progress_logging:
+            print(f'[{logging_prefix}unpickling] Took {int((end - start) * 1000)} milliseconds')
+        if self.structures_to_load:
+            if progress_logging:
+                print(f'[{logging_prefix}unpickling] Loading structures...')
+            start = time.time()
+            data_dir = self.dependencies_dir / self.name / 'data'
+            for ns, paths in self.structures_to_load.items():
+                for struct_path in paths:
+                    full_struct_path = data_dir / ns / 'structures' / (struct_path + '.nbt')
+                    self[f'{ns}:{struct_path}'] = Structure.load(full_struct_path)
+            end = time.time()
+            if progress_logging:
+                print(f'[{logging_prefix}unpickling] Took {int((end - start) * 1000)} milliseconds')
+        return self
+
     def process_data(self):
         self.__load_dependencies()
         self.functions['load'] = Load(self, self.__try_data('objectives'))
@@ -176,12 +278,14 @@ class DataPacker(DataPack):
         if 'dependencies' not in self.data:
             return
         self.packs = {}
-
-        def load(_name):
-            if self.progress_logging:
-                print(f"[dependencies] Loading '{_name}'...")
-            return DataPack.load('out/' + _name)
-        [self.packs.setdefault(key, load(key)) for key in self.data['dependencies']]
+        for key in self.data['dependencies']:
+            self.packs.setdefault(key, DataPacker.load(
+                key,
+                self.progress_logging,
+                self.use_pickle,
+                'dependencies/',
+                self.dependencies_dir
+            ))
         if self.progress_logging:
             print('[dependencies] Complete.')
 
