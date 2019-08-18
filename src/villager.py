@@ -8,7 +8,7 @@ from .items import *
 
 @dataclass
 class Trade:
-    template = get_pkg_data('villager.json')['Trade']
+    template = get_pkg_data('villager.json')['templates']['Trade']
     buy: Item
     sell: Item
     buyB: Optional[Item] = None
@@ -38,7 +38,7 @@ class Trade:
 
 @dataclass
 class Villager:
-    template = get_pkg_data('villager.json')['Villager']
+    template = get_pkg_data('villager.json')['templates']['Villager']
     name: str
     coords: str
     profession: str
