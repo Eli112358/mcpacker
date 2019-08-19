@@ -29,10 +29,10 @@ class FunctionWrapper:
 
 
 class Functions(dict):
-    def add(self, relpath, body=None):
+    def add(self, rel_path, body=None):
         if body is None:
             body = ['']
-        self[relpath] = FunctionWrapper("\n".join(body))
+        self[rel_path] = FunctionWrapper("\n".join(body))
 
     def add_data(self, _pack):
         def data_lines(_path, _object, entry, i):
@@ -60,23 +60,23 @@ class Functions(dict):
 
 
 class SelfTaggedFunction(FunctionWrapper):
-    def __init__(self, _pack, relpath, body="", _namespace='minecraft'):
+    def __init__(self, _pack, rel_path, body="", _namespace='minecraft'):
         self.pack = _pack
-        self.relpath = relpath
+        self.rel_path = rel_path
         self.namespace = _namespace
-        self.fullpath = resolve(relpath, _pack)
+        self.full_path = resolve(rel_path, _pack)
         super().__init__(body)
 
     def add_to_tag(self, _path):
-        if self.relpath not in self.pack[self.namespace].function_tags:
+        if self.rel_path not in self.pack[self.namespace].function_tags:
             self.create_tag()
-        self.pack[self.namespace].function_tags[self.relpath].values.append(_path)
+        self.pack[self.namespace].function_tags[self.rel_path].values.append(_path)
 
     def create_tag(self):
-        self.pack[resolve(self.relpath, None, self.namespace)] = FunctionTag()
+        self.pack[resolve(self.rel_path, None, self.namespace)] = FunctionTag()
 
     def set(self, _pack=None, _path=None, **kwargs):
-        super().set(self.pack, self.fullpath, lambda: self.add_to_tag(self.fullpath))
+        super().set(self.pack, self.full_path, lambda: self.add_to_tag(self.full_path))
 
 
 class Load(SelfTaggedFunction):

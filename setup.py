@@ -2,13 +2,14 @@ from setuptools import setup
 
 setup(
     name='mcpacker',
-    version='0.7.0',
+    version='0.8.0',
     description="Wrapper for vberlier's mcpack",
     author='Eli112358',
     url='https://github.com/Eli112358/mcpacker',
     packages=['mcpacker'],
     package_dir={'mcpacker': 'src'},
     requires=[
+        'dill',
         'mcpack',
         'nbtlib'
     ],

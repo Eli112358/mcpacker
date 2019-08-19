@@ -152,9 +152,9 @@ class Item:
         entry = get_entry(name=self.id)
         entry['functions'] = []
 
-        def add_function(value, name, fname=None):
-            fname = fname if fname else f'set_{name}'
-            entry['functions'].append({'function': fname, f'{name}': value})
+        def add_function(value, name, f_name=None):
+            f_name = f_name if f_name else f'set_{name}'
+            entry['functions'].append({'function': f_name, f'{name}': value})
         if self.count > 1:
             add_function(self.count, 'count')
         if self.nbt:
