@@ -169,7 +169,6 @@ class DataPacker(DataPack, dict, object):
     @classmethod
     def load(cls, name, logger=None, use_pickle=True, load_dir=None):
         log = get_logger(logger, 'load')
-        log.addHandler(logging)
         if not load_dir:
             load_dir = pathlib.Path('out')
         if use_pickle:
