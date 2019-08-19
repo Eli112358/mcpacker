@@ -63,31 +63,23 @@ class AdvancementArgs:
         return {_type: [resolve(_path, self.pack) for _path in paths] for _type, paths in data}
 
 
-class DataPacker(DataPack, dict, object):
-    def __init__(self, name, description,
-                 auto_process_data=True,
-                 compress=True,
-                 dependencies_dir=None,
-                 required_data=None,
-                 use_pickle=True
-                 ):
+class DataPacker(DataPack, dict):
+    def __init__(self, name, description, **kwargs):
         super().__init__(name, description)
         self.log = fix_logger(logging.getLogger(self.name))
-        self.compress = compress
-        self.dependencies_dir = dependencies_dir
-        if not dependencies_dir:
-            self.dependencies_dir = pathlib.Path('out')
-        self.log.debug(f'Dependencies directory: {str(self.dependencies_dir)}')
-        self.required_data = required_data if required_data else []
-        self.log.debug(f'Required data: {self.required_data}')
+        self.adv = AdvancementArgs(self)
         self.structures_to_load = {}
-        self.use_pickle = use_pickle
-        self.data = self.get_data(self.name)
         self.tag = GlobalName(self.name)
+        self.compress = kwargs.get('compress', True)
+        self.dependencies_dir = kwargs.get('dependencies_dir', pathlib.Path('out'))
+        self.required_data = kwargs.get('required_data', [])
+        self.use_pickle = kwargs.get('use_pickle', True)
+        self.log.debug(f'Dependencies directory: {str(self.dependencies_dir)}')
+        self.log.debug(f'Required data: {self.required_data}')
+        self.data = self.get_data(self.name)
         self.functions = Functions()
         self.functions['tick'] = Tick(self)
-        self.adv = AdvancementArgs(self)
-        if auto_process_data:
+        if kwargs.get('auto_process_data', True):
             self.log.debug('Auto processing data')
             self.process_data()
         self.log.info('Initialized')

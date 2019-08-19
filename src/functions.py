@@ -53,10 +53,12 @@ class Functions(dict):
     def load(self, _pack):
         if 'function_code' not in _pack.data:
             return
-        [self[_path].add_lines(lines) for _path, lines in _pack.data['function_code'].items()]
+        for _path, lines in _pack.data['function_code'].items():
+            self[_path].add_lines(lines)
 
     def set(self, _pack):
-        [func.set(_pack, resolve(_path, _pack), ) for _path, func in self.items()]
+        for _path, func in self.items():
+            func.set(_pack, resolve(_path, _pack))
 
 
 class SelfTaggedFunction(FunctionWrapper):
