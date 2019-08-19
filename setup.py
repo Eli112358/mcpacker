@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='mcpacker',
-    version='0.8.2',
+    version='0.8.3',
     description="Wrapper for vberlier's mcpack",
     author='Eli112358',
     url='https://github.com/Eli112358/mcpacker',

@@ -16,6 +16,7 @@ alphabet_keys = 'abcdefghi'
 
 def fix_logger(log, level=0):
     if not log.handlers:
+        log.propagate = False
         log.addHandler(logging.StreamHandler(sys.stdout))
         log.handlers[0].setFormatter(logging.Formatter(f'[{log.name}] %(message)s'))
     if level:
