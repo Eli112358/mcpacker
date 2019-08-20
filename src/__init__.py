@@ -28,6 +28,10 @@ def get_logger(parent, name):
     return fix_logger(parent.getChild(name), parent.level)
 
 
+def duration(start, end):
+    return f'Took {int((end - start) * 1000)} milliseconds'
+
+
 class AdvancementArgs:
     def __init__(self, _pack):
         self.pack = _pack
@@ -172,7 +176,7 @@ class DataPacker(DataPack, dict):
         start = time.time()
         self = DataPacker.cast(super().load(load_dir / name))
         end = time.time()
-        log.info(f'Took {int((end - start) * 1000)} milliseconds')
+        log.info(duration(start, end))
         if (end - start) * 1000 > max_load_milliseconds and use_pickle:
             log.info(f"Pickling '{self.name}' as it took too long to load...")
             self.pickle(pathlib.Path('pickle') / (self.name + '.pickle'), log)
@@ -192,26 +196,26 @@ class DataPacker(DataPack, dict):
                     self.structures_to_load[ns_name].append(struct_path)
                     saved_structures[ns_name][struct_path] = structure
             end = time.time()
-            log.info(f'Took {int((end - start) * 1000)} milliseconds')
+            log.info(duration(start, end))
             log.info('Removing structures...')
             start = time.time()
             for ns, structures in self.structures_to_load.items():
                 for struct_path in structures:
                     self.namespaces[ns].structures.pop(struct_path)
             end = time.time()
-            log.info(f'Took {int((end - start) * 1000)} milliseconds')
+            log.info(duration(start, end))
         log.info('Writing pickle file...')
         start = time.time()
         pickle.dump(self, open(path, 'wb'))
         end = time.time()
-        log.info(f'Took {int((end - start) * 1000)} milliseconds')
+        log.info(duration(start, end))
         if structures_present:
             log.info('Restoring structures...')
             start = time.time()
             for s_path, structure in saved_structures.items():
                 self[s_path] = structure
             end = time.time()
-            log.info(f'Took {int((end - start) * 1000)} milliseconds')
+            log.info(duration(start, end))
 
     @classmethod
     def unpickle(cls, path, logger):
@@ -223,7 +227,7 @@ class DataPacker(DataPack, dict):
         start = time.time()
         self = pickle.load(open(path, 'rb'))
         end = time.time()
-        log.info(f'Took {int((end - start) * 1000)} milliseconds')
+        log.info(duration(start, end))
         if self.structures_to_load:
             log.info('Loading structures...')
             start = time.time()
@@ -233,7 +237,7 @@ class DataPacker(DataPack, dict):
                     full_struct_path = data_dir / ns / 'structures' / (struct_path + '.nbt')
                     self[f'{ns}:{struct_path}'] = Structure.load(full_struct_path)
             end = time.time()
-            log.info(f'Took {int((end - start) * 1000)} milliseconds')
+            log.info(duration(start, end))
         return self
 
     def process_data(self):
