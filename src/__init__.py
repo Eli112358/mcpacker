@@ -91,6 +91,9 @@ class DataPacker(DataPack, dict):
             self.process_data()
         self.log.info('Initialized')
 
+    def __setattr__(self, key, value):
+        super().__setattr__(resolve(key, self), value)
+
     def add_pool(self, _path, pool):
         self.copy_loot_table(_path).pools.append(pool)
 
@@ -285,7 +288,8 @@ class DataPacker(DataPack, dict):
                 self.set('recipes/' + _path, advancement)
 
     def set(self, _path, value):
-        self[_path if ':' in _path else resolve(_path, self)] = value
+        self.log.warning("Function 'set' is deprecated, please set the attribute.")
+        self.__setattr__(_path, value)
 
     def __load_dependencies(self):
         log = get_logger(self.log, 'dependencies')
