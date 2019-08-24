@@ -178,7 +178,7 @@ class DataPacker(DataPack, dict):
                 return self
         log.info(f"Loading '{name}' ...")
         start = time.time()
-        self = DataPacker.cast(super().load(load_dir / name))
+        self = DataPacker.cast(DataPack.load(load_dir / name))
         end = time.time()
         log.info(duration(start, end))
         if (end - start) * 1000 > max_load_milliseconds and use_pickle:
