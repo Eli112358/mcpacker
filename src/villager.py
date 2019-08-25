@@ -59,7 +59,7 @@ class Villager:
             get_list(lambda v: v.dump(), self.trades)
         ]
         _path = tag_name + '/' + self.name
-        _pack.set(_path, Function(self.template.format(*values)), )
+        _pack[_path] = Function(self.template.format(*values))
         if tag_name not in _pack[root_name].function_tags:
-            _pack.set(resolve(tag_name, None, root_name), FunctionTag())
+            _pack[resolve(tag_name, None, root_name)] = FunctionTag()
         _pack[root_name].function_tags[tag_name].values.append(resolve(_path, _pack))

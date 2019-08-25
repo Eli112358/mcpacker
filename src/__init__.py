@@ -107,7 +107,7 @@ class DataPacker(DataPack):
 
         for _name, _pack in self.packs.items():
             if _path in get_tables(_pack) and _path not in get_tables(self):
-                self.set(resolve(_path), copy.deepcopy(get_tables(_pack)[_path]))
+                self[resolve(_path)] = copy.deepcopy(get_tables(_pack)[_path])
         return get_tables(self)[_path]
 
     def dump(self, **kwargs):
@@ -162,10 +162,10 @@ class DataPacker(DataPack):
         return {}
 
     def init_root_advancement(self, icon, description, background='stone'):
-        self.set('root', Advancement(
+        self['root'] = Advancement(
             display=self.adv.display(icon, self.name, description, background),
             criteria=self.adv.criteria_impossible()
-        ))
+        )
 
     @classmethod
     def cast(cls, _pack):
@@ -263,22 +263,22 @@ class DataPacker(DataPack):
         recipes = self.__try_data('recipes', [])
         if not recipes:
             return
-        self.set('recipes/root', Advancement(
+        self['recipes/root'] = Advancement(
             display=self.adv.display('piston', 'Recipe root', 'Recipe root'),
             criteria=self.adv.criteria_impossible()
-        ))
+        )
         self.functions['tick'].add_text(f'advancement revoke @a from {resolve("recipes/root", self)}\n')
         for _path, data in recipes.items():
             shaped = len(data) - 2
             icon_id = data[0][1]
-            self.set(_path, Recipe(
+            self[_path] = Recipe(
                 type='crafting_shape' + ['less', 'd'][shaped],
                 group=self.tag.suffix(_path[:_path.index('/')]),
                 result={'item': resolve(data[0][1]), 'count': data[0][0]},
                 pattern=data[2] if shaped else None,
                 key={alphabet_keys[i]: get_ingredient(self, d) for i, d in enumerate(data[1])} if shaped else None,
                 ingredients=[get_ingredient(self, _id) for _id in data[1]] if not shaped else None
-            ))
+            )
             if self.__try_data('recipe_advancement', False):
                 title = 'Craftable ' + get_name(icon_id)
                 advancement = Advancement(
@@ -289,7 +289,7 @@ class DataPacker(DataPack):
                 )
                 for key in ['announce_to_chat', 'hidden', 'show_toast']:
                     advancement.display.setdefault(key, '_' not in key)
-                self.set('recipes/' + _path, advancement)
+                self['recipes/' + _path] = advancement
 
     def set(self, _path, value):
         self.log.warning("Function 'set' is deprecated, please set the attribute.")
