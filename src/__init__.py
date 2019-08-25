@@ -69,24 +69,28 @@ class AdvancementArgs:
 
 
 class DataPacker(DataPack, dict):
+    defaults = {
+        'auto_process_data': True,
+        'compress': True,
+        'dependencies_dir': pathlib.Path('out'),
+        'output_path': pathlib.Path('out'),
+        'overwrite': True,
+        'required_data': [],
+        'use_pickle': True
+    }
+
     def __init__(self, name, description, **kwargs):
         super().__init__(name, description)
-        self.log = fix_logger(logging.getLogger(self.name))
         self.adv = AdvancementArgs(self)
-        self.structures_to_load = {}
-        self.tag = GlobalName(self.name)
-        self.compress = kwargs.get('compress', True)
-        self.dependencies_dir = kwargs.get('dependencies_dir', pathlib.Path('out'))
-        self.required_data = kwargs.get('required_data', [])
-        self.use_pickle = kwargs.get('use_pickle', True)
-        self.output_path = kwargs.get('output_path', 'out')
-        self.overwrite = kwargs.get('overwrite', True)
-        self.log.debug(f'Dependencies directory: {str(self.dependencies_dir)}')
-        self.log.debug(f'Required data: {self.required_data}')
-        self.data = self.get_data(self.name)
         self.functions = Functions()
         self.functions['tick'] = Tick(self)
-        if kwargs.get('auto_process_data', True):
+        self.log = fix_logger(logging.getLogger(self.name))
+        self.structures_to_load = {}
+        self.tag = GlobalName(self.name)
+        for key, value in DataPacker.defaults.items():
+            setattr(self, key, kwargs.get(key, value))
+        self.data = self.get_data(self.name)
+        if self.auto_process_data:
             self.log.debug('Auto processing data')
             self.process_data()
         self.log.info('Initialized')
