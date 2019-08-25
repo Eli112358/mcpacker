@@ -249,14 +249,14 @@ class DataPacker(DataPack, dict):
 
     def process_data(self):
         self.__load_dependencies()
-        self.functions['load'] = Load(self, self.__try_data('objectives'))
-        function_data = self.__try_data('functions')
+        self.functions['load'] = Load(self, self.__try_data('objectives', []))
+        function_data = self.__try_data('functions', [])
         if function_data:
             for rel_path in function_data:
                 self.functions.add(rel_path)
 
     def recipes(self):
-        recipes = self.__try_data('recipes')
+        recipes = self.__try_data('recipes', [])
         if not recipes:
             return
         self.set('recipes/root', Advancement(
@@ -275,7 +275,7 @@ class DataPacker(DataPack, dict):
                 key={alphabet_keys[i]: get_ingredient(self, d) for i, d in enumerate(data[1])} if shaped else None,
                 ingredients=[get_ingredient(self, _id) for _id in data[1]] if not shaped else None
             ))
-            if self.__try_data('recipe_advancement'):
+            if self.__try_data('recipe_advancement', False):
                 title = 'Craftable ' + get_name(icon_id)
                 advancement = Advancement(
                     parent=resolve('recipes/root', self),
@@ -293,28 +293,27 @@ class DataPacker(DataPack, dict):
 
     def __load_dependencies(self):
         log = get_logger(self.log, 'dependencies')
-        if 'dependencies' not in self.data:
-            log.debug('Not found in data')
-            return
         self.packs = {}
-        for key in self.data['dependencies']:
+        dependencies = self.__try_data('dependencies', [])
+        for key in dependencies:
             self.packs.setdefault(key, DataPacker.load(
                 key,
                 log,
                 self.use_pickle,
                 self.dependencies_dir
             ))
-        log.info('Complete')
+        if dependencies:
+            log.info('Complete')
 
-    def __try_data(self, _name):
+    def __try_data(self, _name, default):
         try:
             return self.data[_name]
         except KeyError as k_err:
             self.log.debug('Key not found in data: %s', k_err)
-            return None
+            return default
         except TypeError as t_err:
             self.log.debug('Type mismatch in data: %s', t_err)
-            return None
+            return default
 
 
 class GlobalName(str):
