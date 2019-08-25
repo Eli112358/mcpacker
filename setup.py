@@ -4,6 +4,8 @@ setup(
     name='mcpacker',
     version='0.8.4',
     description="Wrapper for vberlier's mcpack",
+    long_description=open('README.md', 'r').read(),
+    long_description_content_type='text/markdown',
     author='Eli112358',
     url='https://github.com/Eli112358/mcpacker',
     packages=['mcpacker'],
