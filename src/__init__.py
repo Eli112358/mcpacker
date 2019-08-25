@@ -68,7 +68,7 @@ class AdvancementArgs:
         return {_type: [resolve(_path, self.pack) for _path in paths] for _type, paths in data}
 
 
-class DataPacker(DataPack, dict):
+class DataPacker(DataPack):
     defaults = {
         'auto_process_data': True,
         'compress': True,
@@ -95,8 +95,8 @@ class DataPacker(DataPack, dict):
             self.process_data()
         self.log.info('Initialized')
 
-    def __setattr__(self, key, value):
-        super().__setattr__(resolve(key, self), value)
+    def __setitem__(self, key, value):
+        super().__setitem__(resolve(key, self), value)
 
     def add_pool(self, _path, pool):
         self.copy_loot_table(_path).pools.append(pool)
