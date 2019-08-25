@@ -82,14 +82,14 @@ class DataPacker(DataPack):
     def __init__(self, name, description, **kwargs):
         super().__init__(name, description)
         self.adv = AdvancementArgs(self)
-        self.functions = Functions()
-        self.functions['tick'] = Tick(self)
         self.log = fix_logger(logging.getLogger(self.name))
         self.structures_to_load = {}
         self.tag = GlobalName(self.name)
         for key, value in DataPacker.defaults.items():
             setattr(self, key, kwargs.get(key, value))
         self.data = self.get_data(self.name)
+        self.functions = Functions()
+        self.functions['tick'] = Tick(self)
         if self.auto_process_data:
             self.log.debug('Auto processing data')
             self.process_data()
