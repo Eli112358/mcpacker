@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='mcpacker',
-    version='0.8.6',
+    version='0.8.7',
     description="Wrapper for vberlier's mcpack",
     long_description=open('README.md', 'r').read(),
     long_description_content_type='text/markdown',

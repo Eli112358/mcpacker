@@ -199,6 +199,10 @@ class BankNote(Item):
         set_enchantments(nbt)
         super().__init__('paper', count, nbt)
 
+    @classmethod
+    def from_string(cls, s):
+        return [cls(d, 1 + i) for i, d in enumerate(reversed([int(d) for d in re.findall('\d', s)]))]
+
 
 class EnchantedBook(Item):
     def __init__(self, _list, display=None):
