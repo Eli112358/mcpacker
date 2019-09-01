@@ -54,7 +54,7 @@ class Villager:
             quote(resolve(self.profession)),
             quote(resolve(self.biome)),
             get_list(lambda v: quote(v), ['shop', 'villager']),
-            get_list(lambda v: v+':1', ['Invulnerable', 'NoGravity', 'Silent', 'NoAI']),
+            get_list(lambda v: v+':1', ['Invulnerable', 'Silent', 'NoAI']),
             quote(resolve('empty')),
             get_list(lambda v: v.dump(), self.trades)
         ]
