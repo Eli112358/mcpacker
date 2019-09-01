@@ -167,6 +167,16 @@ class DataPacker(DataPack):
             criteria=self.adv.criteria_impossible()
         )
 
+    def get_loot_table(self, path):
+        namespace, _path = resolve(path).split(':')
+        if namespace in self.namespaces and _path in self[namespace].loot_tables:
+            return self[namespace].loot_tables[_path]
+        for _name, _pack in self.packs.items():
+            if namespace in _pack.namespaces and _path in _pack[namespace].loot_tables:
+                return _pack[namespace].loot_tables[_path]
+        self.log.warning('Loot table not found: ' + path)
+        return None
+
     @classmethod
     def cast(cls, _pack):
         self = cls(_pack.name, _pack.description)
