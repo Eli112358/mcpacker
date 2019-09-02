@@ -200,7 +200,7 @@ class BankNote(Item):
         super().__init__('paper', count, nbt)
 
     @classmethod
-    def from_string(cls, s):
+    def parse(cls, s):
         return [cls(d, 1 + i) for i, d in enumerate(reversed([int(d) for d in re.findall('\d', str(s))]))]
 
 
