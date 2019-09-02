@@ -201,7 +201,7 @@ class BankNote(Item):
 
     @classmethod
     def from_string(cls, s):
-        return [cls(d, 1 + i) for i, d in enumerate(reversed([int(d) for d in re.findall('\d', s)]))]
+        return [cls(d, 1 + i) for i, d in enumerate(reversed([int(d) for d in re.findall('\d', str(s))]))]
 
 
 class EnchantedBook(Item):
