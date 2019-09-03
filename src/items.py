@@ -120,6 +120,8 @@ class Switch:
 
 class Item:
     def __init__(self, _id, count=1, nbt=None):
+        if count < 1:
+            raise ValueError('Count must be more than 0')
         self.id = resolve(_id)
         self.count = count
         self.nbt = nbt
