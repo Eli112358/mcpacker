@@ -102,13 +102,10 @@ class DataPacker(DataPack):
         self.copy_loot_table(_path).pools.append(pool)
 
     def copy_loot_table(self, _path):
-        def get_tables(_pack):
-            return _pack['minecraft'].loot_tables
-
         for _name, _pack in self.packs.items():
-            if _path in get_tables(_pack) and _path not in get_tables(self):
-                self[resolve(_path)] = copy.deepcopy(get_tables(_pack)[_path])
-        return get_tables(self)[_path]
+            if _path in _pack['minecraft'].loot_tables and _path not in self['minecraft'].loot_tables:
+                self[resolve(_path)] = copy.deepcopy(_pack['minecraft'].loot_tables[_path])
+        return self['minecraft'].loot_tables[_path]
 
     def dump(self, **kwargs):
         log = get_logger(self.log, 'dump')
