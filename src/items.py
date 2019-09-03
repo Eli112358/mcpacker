@@ -1,3 +1,4 @@
+import math
 import os
 import copy
 import re
@@ -200,8 +201,28 @@ class BankNote(Item):
         super().__init__('paper', count, nbt)
 
     @classmethod
-    def parse(cls, s):
-        return [cls(d, 1 + i) for i, d in enumerate(reversed([int(d) for d in re.findall('\d', str(s))]))]
+    def parse(cls, value):
+        n_denom = len(cls.denominations)
+        result = []
+        value2 = float(value)
+        for i in range(n_denom):
+            if value2 == 0:
+                break
+            pow_ten = 10**(n_denom-i-2)
+            magnitude = math.floor(math.log10(value2))
+            max_count = round(value2/(int('1'*(magnitude+1))/10), 1)
+            next_count = math.floor(value2/(pow_ten/10))
+            if next_count % 10 > 0 and \
+                    next_count <= 70 and \
+                    max_count <= 64:
+                continue
+            try:
+                count = min(math.floor(value2/pow_ten), 64)
+                result.append(cls(count, i))
+                value2 = value2-count*pow_ten
+            except ValueError:
+                pass
+        return result
 
 
 class EnchantedBook(Item):
