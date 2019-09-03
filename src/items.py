@@ -172,7 +172,7 @@ class Item:
         return f'id:{quote(self.id)},Count:{self.stack()}' + ((',tag:' + self.__get_fixed_nbt()) if self.nbt else '')
 
     def give(self):
-        return self.id + self.__get_fixed_nbt() + (str(self.count) if self.count > 1 else '')
+        return self.id + self.__get_fixed_nbt() + (' ' + str(self.count) if self.count > 1 else '')
 
 
 class BankNote(Item):
