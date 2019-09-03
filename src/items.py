@@ -221,7 +221,7 @@ class BankNote(Item):
             try:
                 count = min(math.floor(value2/pow_ten), 64)
                 result.append(cls(count, i))
-                value2 = value2-count*pow_ten
+                value2 -= count*pow_ten
             except ValueError:
                 pass
         return result
