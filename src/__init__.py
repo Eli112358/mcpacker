@@ -299,8 +299,8 @@ class DataPacker(DataPack):
                 self['recipes/' + _path] = advancement
 
     def set(self, _path, value):
-        self.log.warning("Function 'set' is deprecated, please set the attribute.")
-        self.__setattr__(_path, value)
+        self.log.warning("Function 'set' is deprecated, please use 'pack[path] = value'")
+        self[_path] = value
 
     def __load_dependencies(self):
         log = get_logger(self.log, 'dependencies')
