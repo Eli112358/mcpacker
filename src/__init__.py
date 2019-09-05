@@ -260,6 +260,8 @@ class DataPacker(DataPack):
 
     def process_data(self):
         self.__load_dependencies()
+        for tag in self.__try_data('function_tags', []):
+            self[tag] = FunctionTag()
         self.functions['load'] = Load(self, self.__try_data('objectives', []))
         function_data = self.__try_data('functions', [])
         if function_data:
