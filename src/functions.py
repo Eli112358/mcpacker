@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from mcpack import (Function, FunctionTag)
+from mcpack import Function
 
 from .items import *
 
@@ -69,16 +69,11 @@ class SelfTaggedFunction(FunctionWrapper):
         self.full_path = resolve(rel_path, _pack)
         super().__init__(body)
 
-    def add_to_tag(self, _path):
-        if self.rel_path not in self.pack[self.namespace].function_tags:
-            self.create_tag()
-        self.pack[self.namespace].function_tags[self.rel_path].values.append(_path)
-
-    def create_tag(self):
-        self.pack[resolve(self.rel_path, None, self.namespace)] = FunctionTag()
-
     def set(self, _pack=None, _path=None, **kwargs):
-        super().set(self.pack, self.full_path, lambda: self.add_to_tag(self.full_path))
+        def callback():
+            tag_path = resolve(self.rel_path, namespace=kwargs.get('tag_space', self.pack.name))
+            self.pack.add_to_tag(tag_path, self.rel_path)
+        super().set(self.pack, self.full_path, callback)
 
 
 class Load(SelfTaggedFunction):
@@ -87,6 +82,9 @@ class Load(SelfTaggedFunction):
         if objectives is None:
             objectives = []
         self.add_lines([f'scoreboard objectives add {_name}' for _name in objectives])
+
+    def set(self, pack=None, path=None, **kwargs):
+        super().set(tag_path='minecraft')
 
 
 class Tick(SelfTaggedFunction):
@@ -106,13 +104,15 @@ class Tick(SelfTaggedFunction):
         objectives = [] if 'objectives' not in _pack.data else _pack.data['objectives']
         names = [_name.split(' ')[0] for _name in objectives if _name.split(' ')[1] == 'trigger']
         self.add_lines(['scoreboard players ' + op[0:].format(_name) for op in self.operations for _name in names])
-        super().set(_pack, _path, )
+        super().set(tag_path='minecraft')
 
 
 class Built(SelfTaggedFunction):
     def __init__(self, _pack):
         today = datetime.today()
-        tellraw = 'tellraw @s ' + json.dumps(['', {
+        tellraw = 'tellraw @s ' + json.dumps([
+            '',
+            {
                 'text': today.strftime('%Y-%m-%d'),
                 'color': colors[today.timetuple().tm_yday % len(colors)]
             },

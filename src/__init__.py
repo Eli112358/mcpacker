@@ -5,7 +5,7 @@ import sys
 import time
 import zipfile
 
-from mcpack import (DataPack, Advancement, Recipe, Structure)
+from mcpack import (DataPack, Advancement, Recipe, Structure, FunctionTag)
 
 from .functions import *
 from .items import *
@@ -97,6 +97,17 @@ class DataPacker(DataPack):
 
     def __setitem__(self, key, value):
         super().__setitem__(resolve(key, self), value)
+
+    def add_to_tag(self, tag_path, function_path):
+        path = tag_path.split(':')
+        if tag_path not in self[path[0]].function_tags:
+            self[tag_path] = FunctionTag()
+        self[path[0]].function_tags[path[1]].values.append(resolve(function_path, self))
+
+    def create_function_tag(self, path):
+        path0 = path.split(':')
+        if path0[1] not in self[path0[0]].function_tags:
+            self[path] = FunctionTag()
 
     def add_pool(self, _path, pool):
         self.copy_loot_table(_path).pools.append(pool)
