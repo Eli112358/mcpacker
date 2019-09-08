@@ -20,6 +20,19 @@ def get_pkg_data(path):
 stack_data = get_pkg_data('items.json')
 wood_types = get_pkg_data('wood.json')['wood_types']
 
+switch_cases = dict(
+    ingredients=[
+        lambda pack, name: {'item': resolve(name)},
+        lambda pack, name: {'tag': resolve(name[1:])},
+        lambda pack, name: {'tag': resolve(name[2:], pack)}
+    ],
+    tag_entries=[
+        lambda pack, name: resolve(name),
+        lambda pack, name: '#' + resolve(name[1:]),
+        lambda pack, name: name.replace('##', f'#{pack.name}:')
+    ]
+)
+
 
 def quote(s):
     return f'"{s}"'
@@ -67,19 +80,15 @@ def get_name(name):
 
 
 def get_ingredient(pack, name):
-    return Switch(2, (lambda i: name[i] == '#'), [
-        {'item': resolve(name)},
-        {'tag': resolve(name[1:])},
-        {'tag': resolve(name[2:], pack)}
-    ]).dump()
+    return __get_switch_case('ingredients', pack, name)
 
 
 def get_tag_entry(pack, name):
-    return Switch(2, (lambda i: name[i] == '#'), [
-        resolve(name),
-        ('#' + resolve(name[1:])),
-        name.replace('##', f'#{pack.name}:')
-    ]).dump()
+    return __get_switch_case('tag_entries', pack, name)
+
+
+def __get_switch_case(key, pack, name):
+    return switch_cases[key][name.count('#')](pack, name)
 
 
 def set_nbt_list(nbt, name, pattern='', data=None, parse=False):
@@ -106,16 +115,6 @@ def get_max_stack(_id):
             if (entry[0] == '_' and _id.endswith(entry)) or (entry[-1] == '_' and _id.startswith(entry)):
                 return value
     return 64
-
-
-class Switch:
-    def __init__(self, _max, check, cases):
-        self.max = _max
-        self.check = check
-        self.cases = cases
-
-    def dump(self):
-        return self.cases[sum([self.check(i) for i in range(self.max)])]
 
 
 class Item:
