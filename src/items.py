@@ -108,11 +108,8 @@ def set_enchantments(nbt, _list=None, stored=False):
 def get_max_stack(_id):
     values = {'non_stackable': 1, 'stack_16': 16}
     for key, value in values.items():
-        if _id in stack_data[key]:
-            return value
-    for key, value in values.items():
         for entry in stack_data[key]:
-            if (entry[0] == '_' and _id.endswith(entry)) or (entry[-1] == '_' and _id.startswith(entry)):
+            if _id == entry or (re.search('[^$]', entry) and re.search(entry, _id)):
                 return value
     return 64
 
