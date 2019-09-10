@@ -62,17 +62,17 @@ class Functions(dict):
 
 
 class SelfTaggedFunction(FunctionWrapper):
-    def __init__(self, _pack, rel_path, body="", _namespace='minecraft'):
+    def __init__(self, _pack, rel_path, body='', _namespace='minecraft'):
         self.pack = _pack
         self.rel_path = rel_path
         self.namespace = _namespace
         self.full_path = resolve(rel_path, _pack)
+        self.tag_path = resolve(self.rel_path, namespace=self.namespace)
         super().__init__(body)
 
     def set(self, _pack=None, _path=None, **kwargs):
         def callback():
-            tag_path = resolve(self.rel_path, namespace=kwargs.get('tag_space', self.pack.name))
-            self.pack.add_to_tag(tag_path, self.rel_path)
+            self.pack.add_to_tag(self.tag_path, self.rel_path)
         super().set(self.pack, self.full_path, callback)
 
 
@@ -82,9 +82,6 @@ class Load(SelfTaggedFunction):
         if objectives is None:
             objectives = []
         self.add_lines([f'scoreboard objectives add {_name}' for _name in objectives])
-
-    def set(self, pack=None, path=None, **kwargs):
-        super().set(tag_path='minecraft')
 
 
 class Tick(SelfTaggedFunction):
@@ -104,7 +101,7 @@ class Tick(SelfTaggedFunction):
         objectives = [] if 'objectives' not in _pack.data else _pack.data['objectives']
         names = [_name.split(' ')[0] for _name in objectives if _name.split(' ')[1] == 'trigger']
         self.add_lines(['scoreboard players ' + op[0:].format(_name) for op in self.operations for _name in names])
-        super().set(tag_path='minecraft')
+        super().set()
 
 
 class Built(SelfTaggedFunction):
