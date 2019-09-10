@@ -4,7 +4,7 @@ from mcpack import Function
 
 from .items import *
 
-colors = get_pkg_data('colors.json')['colors']
+colors = get_pkg_data('colors.json')['text']
 
 
 class FunctionWrapper:

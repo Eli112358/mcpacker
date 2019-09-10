@@ -1,5 +1,5 @@
 {
-	"colors": [
+	"text": [
 		"black",
 		"dark_blue",
 		"dark_green",
@@ -14,6 +14,24 @@
 		"aqua",
 		"red",
 		"light_purple",
+		"yellow"
+	],
+	"blocks": [
+		"black",
+		"blue",
+		"brown",
+		"cyan",
+		"gray",
+		"green",
+		"light_blue",
+		"light_gray",
+		"lime",
+		"magenta",
+		"orange",
+		"pink",
+		"purple",
+		"red",
+		"white",
 		"yellow"
 	]
 }
