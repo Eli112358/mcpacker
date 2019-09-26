@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='mcpacker',
-    version='0.9.1',
+    version='0.10.0-rc1',
     description="Wrapper for vberlier's mcpack",
     long_description=open('README.md', 'r').read(),
     long_description_content_type='text/markdown',
@@ -11,6 +11,7 @@ setup(
     packages=['mcpacker'],
     package_dir={'mcpacker': 'src'},
     requires=[
+        'deprecated',
         'dill',
         'mcpack',
         'nbtlib'
