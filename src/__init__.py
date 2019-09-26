@@ -6,9 +6,9 @@ import zipfile
 import dill as pickle
 from mcpack import (DataPack, Advancement, Recipe, Structure, FunctionTag)
 
-from functions import *
-from items import *
-from namespaced import Namespaced
+from .functions import *
+from .items import *
+from .namespaced import Namespaced
 
 alphabet_keys = 'abcdefghi'
 max_load_milliseconds = get_env_var('max_load_milliseconds', 500)

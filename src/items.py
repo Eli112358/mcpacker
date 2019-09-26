@@ -10,7 +10,7 @@ from deprecated import deprecated
 from nbtlib import (parse_nbt, serialize_tag)
 from nbtlib.tag import (Compound, List, String)
 
-from namespaced import Namespaced
+from .namespaced import Namespaced
 
 pkg_data = pathlib.Path('data')
 
