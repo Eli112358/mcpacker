@@ -99,13 +99,12 @@ class DataPacker(DataPack):
         super().__setitem__(str(self.get_path(key)), value)
 
     def add_to_tag(self, tag_path, function_path):
-        self.create_function_tag(tag_path).values.append(self.get_path(function_path))
+        self.create_function_tag(tag_path).values.append(str(self.get_path(function_path)))
 
     def create_function_tag(self, path):
-        namespace, tag_path = path.split(':')
-        if tag_path not in self[namespace].function_tags:
+        if path.value not in self[path.namespace].function_tags:
             self[path] = FunctionTag()
-        return self[namespace].function_tags[tag_path]
+        return self[path.namespace].function_tags[path.value]
 
     def add_pool(self, _path, pool):
         self.copy_loot_table(_path).pools.append(pool)
