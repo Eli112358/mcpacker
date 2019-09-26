@@ -24,8 +24,8 @@ def fix_logger(log, level=0):
     return log
 
 
-def get_logger(parent, name):
-    return fix_logger(parent.getChild(name), parent.level)
+def get_logger(parent, _name):
+    return fix_logger(parent.getChild(_name), parent.level)
 
 
 def duration(start, end):
@@ -79,8 +79,8 @@ class DataPacker(DataPack):
         'use_pickle': True
     }
 
-    def __init__(self, name, description, **kwargs):
-        super().__init__(name, description)
+    def __init__(self, _name, description, **kwargs):
+        super().__init__(_name, description)
         self.adv = AdvancementArgs(self)
         self.log = fix_logger(logging.getLogger(self.name))
         self.structures_to_load = {}
@@ -123,8 +123,8 @@ class DataPacker(DataPack):
             'functions': lambda: self.functions.set(self),
             'recipes': lambda: self.recipes()
         }
-        for name, _lambda in lambdas.items():
-            log.debug(name.capitalize())
+        for _name, _lambda in lambdas.items():
+            log.debug(_name.capitalize())
             try:
                 _lambda()
             except KeyError as k_err:
@@ -191,17 +191,17 @@ class DataPacker(DataPack):
         return self
 
     @classmethod
-    def load(cls, name, logger=None, use_pickle=True, load_dir=None):
+    def load(cls, _name, logger=None, use_pickle=True, load_dir=None):
         log = get_logger(logger, 'load')
         if not load_dir:
             load_dir = pathlib.Path('out')
         if use_pickle:
-            self = cls.unpickle(pathlib.Path('pickle') / (name + '.pickle'), log)
+            self = cls.unpickle(pathlib.Path('pickle') / (_name + '.pickle'), log)
             if self is not None:
                 return self
-        log.info(f"Loading '{name}' ...")
+        log.info(f"Loading '{_name}' ...")
         start = time.time()
-        self = DataPacker.cast(DataPack.load(load_dir / name))
+        self = DataPacker.cast(DataPack.load(load_dir / _name))
         end = time.time()
         log.info(duration(start, end))
         if (end - start) * 1000 > max_load_milliseconds and use_pickle:
