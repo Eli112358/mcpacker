@@ -1,31 +1,17 @@
-import json
 import logging
-import os
-import pathlib
 import sys
 import time
 import zipfile
 
 import dill as pickle
-import pkg_resources
 from mcpack import (DataPack, Advancement, Recipe, Structure, FunctionTag)
 
-from .functions import *
-from .items import *
-
-
-def get_env_var(key, default=''):
-    return os.environ.get(f'minecraft_{key}', default)
-
+from functions import *
+from items import *
+from namespaced import Namespaced
 
 alphabet_keys = 'abcdefghi'
 max_load_milliseconds = get_env_var('max_load_milliseconds', 500)
-pkg_data = pathlib.Path('data')
-
-
-def get_pkg_data(path):
-    with open(pkg_resources.resource_filename(__name__, pkg_data / path)) as data:
-        return json.load(data)
 
 
 def fix_logger(log, level=0):
@@ -361,23 +347,3 @@ class GlobalName(str):
 
     def suffix(self, suffix):
         return GlobalName('_'.join([self.name, suffix]))
-
-
-class Namespaced:
-    def __add__(self, other):
-        return str(self) + other
-
-    def __init__(self, value, namespace='minecraft'):
-        str_value = str(value)
-        parts = str_value.split(':')
-        self.namespace = parts[-2] if ':' in str_value else namespace
-        self.value = pathlib.PurePosixPath(parts[-1])
-
-    def __repr__(self):
-        return self.namespace + ':' + str(self.value)
-
-    def child(self, value):
-        return Namespaced(self.value / value, self.namespace)
-
-    def parent(self):
-        return Namespaced('/'.join(str(self).split('/')[:-1]))

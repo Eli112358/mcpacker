@@ -1,5 +1,5 @@
-from .items import *
-from .villager import Trade
+from items import *
+from villager import Trade
 
 
 def get_quantity(item):

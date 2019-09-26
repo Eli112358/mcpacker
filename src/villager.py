@@ -3,7 +3,7 @@ from typing import Optional
 
 from mcpack import (Function, FunctionTag)
 
-from .items import *
+from items import *
 
 
 @dataclass

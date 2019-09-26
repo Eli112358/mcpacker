@@ -2,8 +2,7 @@ from datetime import datetime
 
 from mcpack import Function
 
-from . import get_pkg_data
-from .items import *
+from items import *
 
 colors = get_pkg_data('colors.json')['text']
 
