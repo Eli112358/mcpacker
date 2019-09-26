@@ -1,8 +1,6 @@
 from .items import *
 from .villager import Trade
 
-server_name = os.environ.get('minecraft_server_name', '')
-
 
 def get_quantity(item):
     _max = get_max_stack(item.id)

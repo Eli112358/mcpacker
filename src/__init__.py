@@ -1,17 +1,31 @@
-import dill as pickle
+import json
 import logging
+import os
 import pathlib
 import sys
 import time
 import zipfile
 
+import dill as pickle
+import pkg_resources
 from mcpack import (DataPack, Advancement, Recipe, Structure, FunctionTag)
 
 from .functions import *
 from .items import *
 
-max_load_milliseconds = os.environ.get('minecraft_maximum_load_milliseconds', 500)
+
+def get_env_var(key, default=''):
+    return os.environ.get(f'minecraft_{key}', default)
+
+
 alphabet_keys = 'abcdefghi'
+max_load_milliseconds = get_env_var('max_load_milliseconds', 500)
+pkg_data = pathlib.Path('data')
+
+
+def get_pkg_data(path):
+    with open(pkg_resources.resource_filename(__name__, pkg_data / path)) as data:
+        return json.load(data)
 
 
 def fix_logger(log, level=0):

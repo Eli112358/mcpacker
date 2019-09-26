@@ -1,25 +1,15 @@
-import math
-import os
 import copy
+import math
 import re
-import json
-import pkg_resources
 
 from deprecated import deprecated
 from nbtlib import (parse_nbt, serialize_tag)
 from nbtlib.tag import (Compound, List, String)
 
-from src import Namespaced
+from . import Namespaced, get_env_var, get_pkg_data
 
-server_name = os.environ.get('minecraft_server_name', '')
-currency_name = os.environ.get('minecraft_currency_name', 'Bank Note')
-
-
-def get_pkg_data(path):
-    with open(pkg_resources.resource_filename(__name__, f'data/{path}')) as data:
-        return json.load(data)
-
-
+currency_name = get_env_var('currency_name', 'Bank Note')
+server_name = get_env_var('server_name')
 stack_data = get_pkg_data('items.json')
 wood_types = get_pkg_data('wood.json')['wood_types']
 
