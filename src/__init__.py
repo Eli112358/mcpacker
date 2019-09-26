@@ -104,7 +104,7 @@ class DataPacker(DataPack):
     def create_function_tag(self, path):
         if path.value not in self[path.namespace].function_tags:
             self[path] = FunctionTag()
-        return self[path.namespace].function_tags[path.value]
+        return self[path.namespace].function_tags[str(path.value)]
 
     def add_pool(self, _path, pool):
         self.copy_loot_table(_path).pools.append(pool)
