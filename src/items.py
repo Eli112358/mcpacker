@@ -20,7 +20,7 @@ def get_env_var(key, default=''):
 
 
 def get_pkg_data(path):
-    with open(pkg_resources.resource_filename(__name__, pkg_data / path)) as data:
+    with open(pkg_resources.resource_filename(__name__, str(pkg_data / path))) as data:
         return json.load(data)
 
 
@@ -31,20 +31,20 @@ wood_types = get_pkg_data('wood.json')['wood_types']
 
 switch_cases = dict(
     ingredients=[
-        lambda pack, name: {'item': Namespaced(name)},
-        lambda pack, name: {'tag': Namespaced(name[1:])},
-        lambda pack, name: {'tag': Namespaced(name[2:], pack)}
+        lambda pack, name: {'item': str(Namespaced(name))},
+        lambda pack, name: {'tag': str(Namespaced(name[1:]))},
+        lambda pack, name: {'tag': str(pack.get_path(name[2:]))}
     ],
     tag_entries=[
-        lambda pack, name: Namespaced(name),
-        lambda pack, name: '#' + Namespaced(name[1:]),
+        lambda pack, name: str(Namespaced(name)),
+        lambda pack, name: '#' + str(Namespaced(name[1:])),
         lambda pack, name: name.replace('##', f'#{pack.name}:')
     ]
 )
 
 
 def quote(s):
-    return f'"{s}"'
+    return f'"{str(s)}"'
 
 
 def escape(s):
@@ -73,7 +73,7 @@ def get_pool(rolls=1, entries=None):
 
 
 def get_entry(_type='item', name=Namespaced('stone')):
-    return copy.deepcopy({'type': _type, 'name': name})
+    return copy.deepcopy({'type': _type, 'name': str(name)})
 
 
 def get_range(_min=0, _max=1):
@@ -126,7 +126,7 @@ class Item:
     def __init__(self, _id, count=1, nbt=None):
         if count < 1:
             raise ValueError('Count must be more than 0')
-        self.id = Namespaced(_id)
+        self.id = str(Namespaced(_id))
         self.count = count
         self.nbt = nbt
 

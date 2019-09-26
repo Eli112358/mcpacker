@@ -43,7 +43,7 @@ class AdvancementArgs:
             'description': desc
         }
         if bg:
-            display['background'] = Namespaced(f'textures/blocks/{bg}.png')
+            display['background'] = str(Namespaced(f'textures/blocks/{bg}.png'))
         return display
 
     @staticmethod
@@ -96,7 +96,7 @@ class DataPacker(DataPack):
         self.log.info('Initialized')
 
     def __setitem__(self, key, value):
-        super().__setitem__(self.get_path(key), value)
+        super().__setitem__(str(self.get_path(key)), value)
 
     def add_to_tag(self, tag_path, function_path):
         self.create_function_tag(tag_path).values.append(self.get_path(function_path))
@@ -111,10 +111,11 @@ class DataPacker(DataPack):
         self.copy_loot_table(_path).pools.append(pool)
 
     def copy_loot_table(self, _path):
+        path = Namespaced(_path)
         for _name, _pack in self.packs.items():
-            if _path in _pack['minecraft'].loot_tables and _path not in self['minecraft'].loot_tables:
-                self[Namespaced(_path)] = copy.deepcopy(_pack['minecraft'].loot_tables[_path])
-        return self['minecraft'].loot_tables[_path]
+            if path.namespace in _pack.namespaces and str(path.value) in _pack[path.namespace].loot_tables:
+                self[path] = copy.deepcopy(_pack[path.namespace].loot_tables[str(path.value)])
+        return self[path.namespace].loot_tables[str(path.value)]
 
     def dump(self, **kwargs):
         log = get_logger(self.log, 'dump')
@@ -178,12 +179,12 @@ class DataPacker(DataPack):
 
     def get_loot_table(self, _path):
         path = Namespaced(_path)
-        if path.namespace in self.namespaces and path.value in self[path.namespace].loot_tables:
-            return self[path.namespace].loot_tables[path.value]
+        if path.namespace in self.namespaces and str(path.value) in self[path.namespace].loot_tables:
+            return self[path.namespace].loot_tables[str(path.value)]
         for _name, _pack in self.packs.items():
-            if path.namespace in _pack.namespaces and path.value in _pack[path.namespace].loot_tables:
-                return _pack[path.namespace].loot_tables[path.value]
-        self.log.warning('Loot table not found: ' + _path)
+            if path.namespace in _pack.namespaces and str(path.value) in _pack[path.namespace].loot_tables:
+                return _pack[path.namespace].loot_tables[str(path.value)]
+        self.log.warning('Loot table not found: ' + str(_path))
         return None
 
     @classmethod
@@ -295,7 +296,7 @@ class DataPacker(DataPack):
             self[_path] = Recipe(
                 type='crafting_shape' + ['less', 'd'][shaped],
                 group=self.tag.suffix(_path[:_path.index('/')]),
-                result={'item': Namespaced(data[0][1]), 'count': data[0][0]},
+                result={'item': str(Namespaced(data[0][1])), 'count': data[0][0]},
                 pattern=data[2] if shaped else None,
                 key={alphabet_keys[i]: get_ingredient(self, d) for i, d in enumerate(data[1])} if shaped else None,
                 ingredients=[get_ingredient(self, _id) for _id in data[1]] if not shaped else None
