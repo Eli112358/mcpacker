@@ -58,22 +58,20 @@ class Functions(dict):
 
     def set(self, _pack):
         for _path, func in self.items():
-            func.set(_pack, resolve(_path, _pack))
+            func.set(_pack, _pack.get_path(_path))
 
 
 class SelfTaggedFunction(FunctionWrapper):
     def __init__(self, _pack, rel_path, body='', _namespace='minecraft'):
         self.pack = _pack
-        self.rel_path = rel_path
-        self.namespace = _namespace
-        self.full_path = resolve(rel_path, _pack)
-        self.tag_path = resolve(self.rel_path, namespace=self.namespace)
+        self.path = self.pack.get_path(rel_path)
+        self.tag_path = Namespaced(rel_path, _namespace)
         super().__init__(body)
 
     def set(self, _pack=None, _path=None, **kwargs):
         def callback():
-            self.pack.add_to_tag(self.tag_path, self.rel_path)
-        super().set(self.pack, self.full_path, callback)
+            self.pack.add_to_tag(self.tag_path, self.path)
+        super().set(self.pack, self.path, callback)
 
 
 class Load(SelfTaggedFunction):

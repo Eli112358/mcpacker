@@ -43,12 +43,12 @@ class AdvancementArgs:
             'description': desc
         }
         if bg:
-            display['background'] = resolve(f'textures/blocks/{bg}.png')
+            display['background'] = Namespaced(f'textures/blocks/{bg}.png')
         return display
 
     @staticmethod
     def criteria(_name, trigger, conditions=None):
-        criteria = {f'{_name}': {'trigger': resolve(trigger)}}
+        criteria = {f'{_name}': {'trigger': trigger}}
         if conditions:
             criteria[f'{_name}']['conditions'] = conditions
         return criteria
@@ -65,7 +65,7 @@ class AdvancementArgs:
         })
 
     def rewards(self, data):
-        return {_type: [resolve(_path, self.pack) for _path in paths] for _type, paths in data}
+        return {_type: [self.pack.get_path(_path) for _path in paths] for _type, paths in data}
 
 
 class DataPacker(DataPack):
@@ -96,10 +96,10 @@ class DataPacker(DataPack):
         self.log.info('Initialized')
 
     def __setitem__(self, key, value):
-        super().__setitem__(resolve(key, self), value)
+        super().__setitem__(self.get_path(key), value)
 
     def add_to_tag(self, tag_path, function_path):
-        self.create_function_tag(tag_path).values.append(resolve(function_path, self))
+        self.create_function_tag(tag_path).values.append(self.get_path(function_path))
 
     def create_function_tag(self, path):
         namespace, tag_path = path.split(':')
@@ -113,7 +113,7 @@ class DataPacker(DataPack):
     def copy_loot_table(self, _path):
         for _name, _pack in self.packs.items():
             if _path in _pack['minecraft'].loot_tables and _path not in self['minecraft'].loot_tables:
-                self[resolve(_path)] = copy.deepcopy(_pack['minecraft'].loot_tables[_path])
+                self[Namespaced(_path)] = copy.deepcopy(_pack['minecraft'].loot_tables[_path])
         return self['minecraft'].loot_tables[_path]
 
     def dump(self, **kwargs):
@@ -167,20 +167,23 @@ class DataPacker(DataPack):
             log.warning('(%s) %s: line %s column %s', str(data_path), jde.msg, jde.lineno, jde.colno)
         return {}
 
+    def get_path(self, path):
+        return Namespaced(path, self.name)
+
     def init_root_advancement(self, icon, description, background='stone'):
         self['root'] = Advancement(
             display=self.adv.display(icon, self.name, description, background),
             criteria=self.adv.criteria_impossible()
         )
 
-    def get_loot_table(self, path):
-        namespace, _path = resolve(path).split(':')
-        if namespace in self.namespaces and _path in self[namespace].loot_tables:
-            return self[namespace].loot_tables[_path]
+    def get_loot_table(self, _path):
+        path = Namespaced(_path)
+        if path.namespace in self.namespaces and path.value in self[path.namespace].loot_tables:
+            return self[path.namespace].loot_tables[path.value]
         for _name, _pack in self.packs.items():
-            if namespace in _pack.namespaces and _path in _pack[namespace].loot_tables:
-                return _pack[namespace].loot_tables[_path]
-        self.log.warning('Loot table not found: ' + path)
+            if path.namespace in _pack.namespaces and path.value in _pack[path.namespace].loot_tables:
+                return _pack[path.namespace].loot_tables[path.value]
+        self.log.warning('Loot table not found: ' + _path)
         return None
 
     @classmethod
@@ -285,14 +288,14 @@ class DataPacker(DataPack):
             display=self.adv.display('piston', 'Recipe root', 'Recipe root'),
             criteria=self.adv.criteria_impossible()
         )
-        self.functions['tick'].add_text(f'advancement revoke @a from {resolve("recipes/root", self)}\n')
+        self.functions['tick'].add_text(f'advancement revoke @a from {self.get_path("recipes/root")}\n')
         for _path, data in recipes.items():
             shaped = len(data) - 2
             icon_id = data[0][1]
             self[_path] = Recipe(
                 type='crafting_shape' + ['less', 'd'][shaped],
                 group=self.tag.suffix(_path[:_path.index('/')]),
-                result={'item': resolve(data[0][1]), 'count': data[0][0]},
+                result={'item': Namespaced(data[0][1]), 'count': data[0][0]},
                 pattern=data[2] if shaped else None,
                 key={alphabet_keys[i]: get_ingredient(self, d) for i, d in enumerate(data[1])} if shaped else None,
                 ingredients=[get_ingredient(self, _id) for _id in data[1]] if not shaped else None
@@ -300,7 +303,7 @@ class DataPacker(DataPack):
             if self.__try_data('recipe_advancement', False):
                 title = 'Craftable ' + get_name(icon_id)
                 advancement = Advancement(
-                    parent=resolve('recipes/root', self),
+                    parent=self.get_path('recipes/root'),
                     rewards=self.adv.rewards([['recipes', [_path]]]),
                     display=self.adv.display(icon_id, title, title),
                     criteria=self.adv.criteria_have_items(data[1])
@@ -344,3 +347,23 @@ class GlobalName(str):
 
     def suffix(self, suffix):
         return GlobalName('_'.join([self.name, suffix]))
+
+
+class Namespaced:
+    def __add__(self, other):
+        return str(self) + other
+
+    def __init__(self, value, namespace='minecraft'):
+        str_value = str(value)
+        parts = str_value.split(':')
+        self.namespace = parts[-2] if ':' in str_value else namespace
+        self.value = pathlib.PurePosixPath(parts[-1])
+
+    def __repr__(self):
+        return self.namespace + ':' + str(self.value)
+
+    def child(self, value):
+        return Namespaced(self.value / value, self.namespace)
+
+    def parent(self):
+        return Namespaced('/'.join(str(self).split('/')[:-1]))

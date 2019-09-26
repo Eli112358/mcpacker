@@ -5,8 +5,11 @@ import re
 import json
 import pkg_resources
 
+from deprecated import deprecated
 from nbtlib import (parse_nbt, serialize_tag)
 from nbtlib.tag import (Compound, List, String)
+
+from src import Namespaced
 
 server_name = os.environ.get('minecraft_server_name', '')
 currency_name = os.environ.get('minecraft_currency_name', 'Bank Note')
@@ -22,13 +25,13 @@ wood_types = get_pkg_data('wood.json')['wood_types']
 
 switch_cases = dict(
     ingredients=[
-        lambda pack, name: {'item': resolve(name)},
-        lambda pack, name: {'tag': resolve(name[1:])},
-        lambda pack, name: {'tag': resolve(name[2:], pack)}
+        lambda pack, name: {'item': Namespaced(name)},
+        lambda pack, name: {'tag': Namespaced(name[1:])},
+        lambda pack, name: {'tag': Namespaced(name[2:], pack)}
     ],
     tag_entries=[
-        lambda pack, name: resolve(name),
-        lambda pack, name: '#' + resolve(name[1:]),
+        lambda pack, name: Namespaced(name),
+        lambda pack, name: '#' + Namespaced(name[1:]),
         lambda pack, name: name.replace('##', f'#{pack.name}:')
     ]
 )
@@ -50,12 +53,11 @@ def flatten(name):
     return re.sub('_{2,}', ' ', re.sub('[- .,\'"/#!$%^&*;:{}=`~()]', '_', name)).lower()
 
 
+@deprecated(version='0.10.0', reason='Replaced by mcpacker.Path')
 def resolve(path, pack=None, namespace='minecraft'):
-    if ':' in path:
-        return path
     if pack is not None:
-        namespace = pack.name
-    return namespace + ':' + path
+        return pack.get_path(path)
+    return Namespaced(path, namespace)
 
 
 def get_pool(rolls=1, entries=None):
@@ -64,7 +66,7 @@ def get_pool(rolls=1, entries=None):
     return copy.deepcopy({'rolls': rolls, 'entries': entries})
 
 
-def get_entry(_type='item', name=resolve('stone')):
+def get_entry(_type='item', name=Namespaced('stone')):
     return copy.deepcopy({'type': _type, 'name': name})
 
 
@@ -118,7 +120,7 @@ class Item:
     def __init__(self, _id, count=1, nbt=None):
         if count < 1:
             raise ValueError('Count must be more than 0')
-        self.id = resolve(_id)
+        self.id = Namespaced(_id)
         self.count = count
         self.nbt = nbt
 

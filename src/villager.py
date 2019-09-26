@@ -51,15 +51,15 @@ class Villager:
         values = [
             self.coords,
             quote(escape(quote(get_name(self.name)))),
-            quote(resolve(self.profession)),
-            quote(resolve(self.biome)),
+            quote(Namespaced(self.profession)),
+            quote(Namespaced(self.biome)),
             get_list(lambda v: quote(v), ['shop', 'villager']),
             get_list(lambda v: v+':1', ['Invulnerable', 'Silent', 'NoAI']),
-            quote(resolve('empty')),
+            quote(Namespaced('empty')),
             get_list(lambda v: v.dump(), self.trades)
         ]
         _path = tag_name + '/' + self.name
         _pack[_path] = Function(self.template.format(*values))
         if tag_name not in _pack[root_name].function_tags:
-            _pack[resolve(tag_name, None, root_name)] = FunctionTag()
-        _pack[root_name].function_tags[tag_name].values.append(resolve(_path, _pack))
+            _pack[Namespaced(tag_name, root_name)] = FunctionTag()
+        _pack[root_name].function_tags[tag_name].values.append(_pack.get_path(_path))
