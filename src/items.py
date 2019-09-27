@@ -59,7 +59,7 @@ def flatten(name):
     return re.sub('_{2,}', ' ', re.sub('[- .,\'"/#!$%^&*;:{}=`~()]', '_', name)).lower()
 
 
-@deprecated(version='0.10.0', reason='Replaced by mcpacker.Path')
+@deprecated(version='0.10.0', reason='Replaced by mcpacker.Namespaced')
 def resolve(path, pack=None, namespace='minecraft'):
     if pack is not None:
         return pack.get_path(path)
