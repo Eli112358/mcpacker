@@ -25,8 +25,8 @@ class Namespaced:
     def __repr__(self):
         return '{}:{}'.format(self.namespace, str(self.value))
 
-    def child(self, value):
-        return Namespaced(self.value / value, self.namespace)
+    def __truediv__(self, other):
+        return Namespaced(self.value / other, self.namespace)
 
     def parent(self):
         return Namespaced('/'.join(str(self).split('/')[:-1]))
