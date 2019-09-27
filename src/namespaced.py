@@ -13,7 +13,7 @@ JSONEncoder.default = _default
 
 class Namespaced:
     def __add__(self, other):
-        return str(self) + other
+        return str(self) + str(other)
 
     def __init__(self, value, namespace='minecraft'):
         str_value = str(value)
@@ -26,7 +26,7 @@ class Namespaced:
         return '{}:{}'.format(self.namespace, str(self.value))
 
     def __truediv__(self, other):
-        return Namespaced(self.value / other, self.namespace)
+        return Namespaced(self.value / str(other), self.namespace)
 
     def parent(self):
         return Namespaced('/'.join(str(self).split('/')[:-1]))
