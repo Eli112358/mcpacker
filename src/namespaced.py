@@ -23,7 +23,7 @@ class Namespaced:
         self.str = str(self.value)
 
     def __repr__(self):
-        return self.namespace + ':' + str(self.value)
+        return '{}:{}'.format(self.namespace, str(self.value))
 
     def child(self, value):
         return Namespaced(self.value / value, self.namespace)
