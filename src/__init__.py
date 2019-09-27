@@ -99,12 +99,12 @@ class DataPacker(DataPack):
         super().__setitem__(str(self.get_path(key)), value)
 
     def add_to_tag(self, tag_path, function_path):
-        self.create_function_tag(tag_path).values.append(str(self.get_path(function_path)))
+        self.create_function_tag(tag_path).values.append(self.get_path(function_path))
 
     def create_function_tag(self, path):
-        if path.value not in self[path.namespace].function_tags:
+        if path.str not in self[path.namespace].function_tags:
             self[path] = FunctionTag()
-        return self[path.namespace].function_tags[str(path.value)]
+        return self[path.namespace].function_tags[path.str]
 
     def add_pool(self, _path, pool):
         self.copy_loot_table(_path).pools.append(pool)
@@ -112,9 +112,9 @@ class DataPacker(DataPack):
     def copy_loot_table(self, _path):
         path = Namespaced(_path)
         for _name, _pack in self.packs.items():
-            if path.namespace in _pack.namespaces and str(path.value) in _pack[path.namespace].loot_tables:
-                self[path] = copy.deepcopy(_pack[path.namespace].loot_tables[str(path.value)])
-        return self[path.namespace].loot_tables[str(path.value)]
+            if path.namespace in _pack.namespaces and path.str in _pack[path.namespace].loot_tables:
+                self[path] = copy.deepcopy(_pack[path.namespace].loot_tables[path.str])
+        return self.get_loot_table(path)
 
     def dump(self, **kwargs):
         log = get_logger(self.log, 'dump')
@@ -178,12 +178,12 @@ class DataPacker(DataPack):
 
     def get_loot_table(self, _path):
         path = Namespaced(_path)
-        if path.namespace in self.namespaces and str(path.value) in self[path.namespace].loot_tables:
-            return self[path.namespace].loot_tables[str(path.value)]
+        if path.namespace in self.namespaces and path.str in self[path.namespace].loot_tables:
+            return self[path.namespace].loot_tables[path.str]
         for _name, _pack in self.packs.items():
-            if path.namespace in _pack.namespaces and str(path.value) in _pack[path.namespace].loot_tables:
-                return _pack[path.namespace].loot_tables[str(path.value)]
-        self.log.warning('Loot table not found: ' + str(_path))
+            if path.namespace in _pack.namespaces and path.str in _pack[path.namespace].loot_tables:
+                return _pack[path.namespace].loot_tables[path.str]
+        self.log.warning('Loot table not found: ' + str(path))
         return None
 
     @classmethod

@@ -1,5 +1,15 @@
 import pathlib
 
+from json import JSONEncoder
+
+
+def _default(self, obj):
+    return str(obj)
+
+
+_default.default = JSONEncoder.default
+JSONEncoder.default = _default
+
 
 class Namespaced:
     def __add__(self, other):
@@ -10,6 +20,7 @@ class Namespaced:
         parts = str_value.split(':')
         self.namespace = parts[-2] if ':' in str_value else namespace
         self.value = pathlib.PurePosixPath(parts[-1])
+        self.str = str(self.value)
 
     def __repr__(self):
         return self.namespace + ':' + str(self.value)
