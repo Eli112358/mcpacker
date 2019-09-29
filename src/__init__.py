@@ -4,7 +4,14 @@ import time
 import zipfile
 
 import dill as pickle
-from mcpack import (DataPack, Advancement, Recipe, Structure, FunctionTag)
+from mcpack import (
+    Advancement,
+    DataPack,
+    FunctionTag,
+    LootTable,
+    Recipe,
+    Structure
+)
 
 from .functions import *
 from .items import *
@@ -107,14 +114,22 @@ class DataPacker(DataPack):
         return self[path.namespace].function_tags[path.str]
 
     def add_pool(self, _path, pool):
+        get_logger(self.log, 'add_pool').debug(_path)
         self.copy_loot_table(_path).pools.append(pool)
 
     def copy_loot_table(self, _path):
+        log = get_logger(self.log, 'copy_loot_table')
+        log.debug(_path)
         path = Namespaced(_path)
+        log.debug(str(path))
         for _name, _pack in self.packs.items():
+            log.debug(_name)
             if path.namespace in _pack.namespaces and path.str in _pack[path.namespace].loot_tables:
+                log.debug(f'Found in {_name}')
                 self[path] = copy.deepcopy(_pack[path.namespace].loot_tables[path.str])
-        return self.get_loot_table(path)
+                return self.get_loot_table(path)
+        log.warning(f'Loot table not found: {str(path)}')
+        return LootTable()
 
     def dump(self, **kwargs):
         log = get_logger(self.log, 'dump')
@@ -177,14 +192,20 @@ class DataPacker(DataPack):
         )
 
     def get_loot_table(self, _path):
+        log = get_logger(self.log, 'get_loot_table')
+        log.debug(_path)
         path = Namespaced(_path)
+        log.debug(str(path))
         if path.namespace in self.namespaces and path.str in self[path.namespace].loot_tables:
+            log.debug('Found in self')
             return self[path.namespace].loot_tables[path.str]
         for _name, _pack in self.packs.items():
+            log.debug(_name)
             if path.namespace in _pack.namespaces and path.str in _pack[path.namespace].loot_tables:
+                log.debug(f'Found in {_name}')
                 return _pack[path.namespace].loot_tables[path.str]
         self.log.warning('Loot table not found: ' + str(path))
-        return None
+        return LootTable()
 
     @classmethod
     def cast(cls, _pack):
