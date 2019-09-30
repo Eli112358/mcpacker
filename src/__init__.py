@@ -76,6 +76,10 @@ class AdvancementArgs:
 
 
 class DataPacker(DataPack):
+    data_errors = {
+        'KeyError': 'Key not found in data: %s',
+        'TypeError': 'Type mismatch in data: %s'
+    }
     defaults = {
         'auto_process_data': True,
         'compress': True,
@@ -350,11 +354,8 @@ class DataPacker(DataPack):
     def __try_data(self, _name, default):
         try:
             return self.data[_name]
-        except KeyError as k_err:
-            self.log.debug('Key not found in data: %s', k_err)
-            return default
-        except TypeError as t_err:
-            self.log.debug('Type mismatch in data: %s', t_err)
+        except (KeyError, TypeError) as e:
+            self.log.debug(DataPacker.data_errors[e.__class__.__name__], e)
             return default
 
 
