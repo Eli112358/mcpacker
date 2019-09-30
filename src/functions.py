@@ -7,6 +7,10 @@ from .items import *
 colors = get_pkg_data('colors.json')['text']
 
 
+def tellraw(message, target='@s'):
+    return f'tellraw {target} {json.dumps(["", *message])}'
+
+
 class FunctionWrapper:
     def __init__(self, body=""):
         self.function = Function(body)
@@ -105,8 +109,7 @@ class Tick(SelfTaggedFunction):
 class Built(SelfTaggedFunction):
     def __init__(self, _pack):
         today = datetime.today()
-        tellraw = 'tellraw @s ' + json.dumps([
-            '',
+        body = tellraw([
             {
                 'text': today.strftime('%Y-%m-%d'),
                 'color': colors[today.timetuple().tm_yday % len(colors)]
@@ -116,4 +119,4 @@ class Built(SelfTaggedFunction):
                 'color': 'white'
             }
         ])
-        super().__init__(_pack, 'built', tellraw, 'main')
+        super().__init__(_pack, 'built', body, 'main')
