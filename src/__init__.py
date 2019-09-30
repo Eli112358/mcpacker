@@ -98,7 +98,7 @@ class DataPacker(DataPack):
         self.tag = GlobalName(self.name)
         for key, value in DataPacker.defaults.items():
             setattr(self, key, kwargs.get(key, value))
-        self.data = self.get_data(self.name)
+        self.data = self.load_data(self.name)
         self.functions = Functions()
         self.functions['tick'] = Tick(self)
         if self.auto_process_data:
@@ -173,7 +173,7 @@ class DataPacker(DataPack):
         _zip.close()
         log.info('Complete')
 
-    def get_data(self, _name):
+    def load_data(self, _name):
         log = get_logger(self.log, 'data')
         data_path = pathlib.Path(f'data/{_name}.json')
         try:
