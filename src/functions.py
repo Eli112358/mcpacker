@@ -58,13 +58,13 @@ class Functions(dict):
 
     def set(self, _pack):
         for _path, func in self.items():
-            func.set(_pack, _pack.get_path(_path))
+            func.set(_pack, _pack.namespaced(_path))
 
 
 class SelfTaggedFunction(FunctionWrapper):
     def __init__(self, _pack, rel_path, body='', _namespace='minecraft'):
         self.pack = _pack
-        self.path = self.pack.get_path(rel_path)
+        self.path = self.pack.namespaced(rel_path)
         self.tag_path = Namespaced(rel_path, _namespace)
         super().__init__(body)
 

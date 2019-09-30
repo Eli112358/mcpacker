@@ -62,4 +62,4 @@ class Villager:
         _pack[_path] = Function(self.template.format(*values))
         if tag_name not in _pack[root_name].function_tags:
             _pack[Namespaced(tag_name, root_name)] = FunctionTag()
-        _pack[root_name].function_tags[tag_name].values.append(_pack.get_path(_path))
+        _pack[root_name].function_tags[tag_name].values.append(_pack.namespaced(_path))

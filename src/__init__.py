@@ -72,7 +72,7 @@ class AdvancementArgs:
         })
 
     def rewards(self, data):
-        return {_type: [self.pack.get_path(_path) for _path in paths] for _type, paths in data}
+        return {_type: [self.pack.namespaced(_path) for _path in paths] for _type, paths in data}
 
 
 class DataPacker(DataPack):
@@ -103,10 +103,10 @@ class DataPacker(DataPack):
         self.log.info('Initialized')
 
     def __setitem__(self, key, value):
-        super().__setitem__(str(self.get_path(key)), value)
+        super().__setitem__(str(self.namespaced(key)), value)
 
     def add_to_tag(self, tag_path, function_path):
-        self.create_function_tag(tag_path).values.append(self.get_path(function_path))
+        self.create_function_tag(tag_path).values.append(self.namespaced(function_path))
 
     def create_function_tag(self, path):
         if path.str not in self[path.namespace].function_tags:
@@ -182,7 +182,7 @@ class DataPacker(DataPack):
             log.warning('(%s) %s: line %s column %s', str(data_path), jde.msg, jde.lineno, jde.colno)
         return {}
 
-    def get_path(self, path):
+    def namespaced(self, path):
         return Namespaced(path, self.name)
 
     def init_root_advancement(self, icon, description, background='stone'):
@@ -309,7 +309,7 @@ class DataPacker(DataPack):
             display=self.adv.display('piston', 'Recipe root', 'Recipe root'),
             criteria=self.adv.criteria_impossible()
         )
-        self.functions['tick'].add_text(f'advancement revoke @a from {self.get_path("recipes/root")}\n')
+        self.functions['tick'].add_text(f'advancement revoke @a from {self.namespaced("recipes/root")}\n')
         for _path, data in recipes.items():
             shaped = len(data) - 2
             icon_id = data[0][1]
@@ -324,7 +324,7 @@ class DataPacker(DataPack):
             if self.__try_data('recipe_advancement', False):
                 title = 'Craftable ' + get_name(icon_id)
                 advancement = Advancement(
-                    parent=self.get_path('recipes/root'),
+                    parent=self.namespaced('recipes/root'),
                     rewards=self.adv.rewards([['recipes', [_path]]]),
                     display=self.adv.display(icon_id, title, title),
                     criteria=self.adv.criteria_have_items(data[1])

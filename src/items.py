@@ -33,7 +33,7 @@ switch_cases = dict(
     ingredients=[
         lambda pack, name: {'item': str(Namespaced(name))},
         lambda pack, name: {'tag': str(Namespaced(name[1:]))},
-        lambda pack, name: {'tag': str(pack.get_path(name[2:]))}
+        lambda pack, name: {'tag': str(pack.namespaced(name[2:]))}
     ],
     tag_entries=[
         lambda pack, name: str(Namespaced(name)),
@@ -62,7 +62,7 @@ def flatten(name):
 @deprecated(version='0.10.0', reason='Replaced by mcpacker.Namespaced')
 def resolve(path, pack=None, namespace='minecraft'):
     if pack is not None:
-        return pack.get_path(path)
+        return pack.namespaced(path)
     return Namespaced(path, namespace)
 
 
