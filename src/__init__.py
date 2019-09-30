@@ -80,6 +80,17 @@ class DataPacker(DataPack):
         'KeyError': 'Key not found in data: %s',
         'TypeError': 'Type mismatch in data: %s'
     }
+    data_defaults = {
+        'dependencies': [],
+        'function_code': {},
+        'function_tags': [],
+        'functions': [],
+        'objectives': [],
+        'options': {},
+        'recipe_advancement': False,
+        'recipes': [],
+        'shared_triggers': {}
+    }
     defaults = {
         'auto_process_data': True,
         'compress': True,
@@ -297,16 +308,16 @@ class DataPacker(DataPack):
 
     def process_data(self):
         self.__load_dependencies()
-        for tag in self.get_data('function_tags', []):
+        for tag in self.get_data('function_tags'):
             self[tag] = FunctionTag()
-        self.functions['load'] = Load(self, self.get_data('objectives', []))
-        function_data = self.get_data('functions', [])
+        self.functions['load'] = Load(self, self.get_data('objectives'))
+        function_data = self.get_data('functions')
         if function_data:
             for rel_path in function_data:
                 self.functions.add(rel_path)
 
     def recipes(self):
-        recipes = self.get_data('recipes', [])
+        recipes = self.get_data('recipes')
         if not recipes:
             return
         self['recipes/root'] = Advancement(
@@ -325,7 +336,7 @@ class DataPacker(DataPack):
                 key={alphabet_keys[i]: get_ingredient(self, d) for i, d in enumerate(data[1])} if shaped else None,
                 ingredients=[get_ingredient(self, _id) for _id in data[1]] if not shaped else None
             )
-            if self.get_data('recipe_advancement', False):
+            if self.get_data('recipe_advancement'):
                 title = 'Craftable ' + get_name(icon_id)
                 advancement = Advancement(
                     parent=self.namespaced('recipes/root'),
@@ -340,7 +351,7 @@ class DataPacker(DataPack):
     def __load_dependencies(self):
         log = get_logger(self.log, 'dependencies')
         self.packs = {}
-        dependencies = self.get_data('dependencies', [])
+        dependencies = self.get_data('dependencies')
         for key in dependencies:
             self.packs.setdefault(key, DataPacker.load(
                 key,
@@ -351,12 +362,12 @@ class DataPacker(DataPack):
         if dependencies:
             log.info('Complete')
 
-    def get_data(self, _name, default):
+    def get_data(self, _name):
         try:
             return self.data[_name]
         except (KeyError, TypeError) as e:
             self.log.debug(DataPacker.data_errors[e.__class__.__name__], e)
-            return default
+            return DataPacker.data_defaults[_name]
 
 
 class GlobalName(str):
