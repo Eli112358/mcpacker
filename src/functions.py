@@ -40,7 +40,9 @@ class Functions(dict):
 
     def add_data(self, _pack):
         def data_lines(_path, _object, entry, i):
-            return _pack.data['function_templates'][_path]['template'].format(*data_format(_object, entry, i))
+            return _pack.get_data('function_templates').get(_path).get('template').format(
+                *data_format(_object, entry, i)
+            )
 
         def data_format(_object, entry, i):
             return [i] + entry[1:] if 'iterator' in _object else entry
@@ -50,14 +52,14 @@ class Functions(dict):
 
         def data_lines1(_object, _path, entry):
             return [data_lines(_path, _object, entry, i) for i in range(data_range(_object, entry))]
-        for _path, _object in _pack.data['function_templates'].items():
+        for _path, _object in _pack.get_data('function_templates').items():
             for _entry in _object['data']:
                 self[_path].add_lines(data_lines1(_object, _path, _entry))
 
     def load(self, _pack):
         if 'function_code' not in _pack.data:
             return
-        for _path, lines in _pack.data['function_code'].items():
+        for _path, lines in _pack.get_data('function_code').items():
             self[_path].add_lines(lines)
 
     def set(self, _pack):
@@ -96,11 +98,13 @@ class Tick(SelfTaggedFunction):
     def __init__(self, _pack, body=''):
         super().__init__(_pack, 'tick', body)
         if 'options' in _pack.data:
-            lines = [_pack.data['options']['pattern'].format(*values) for values in _pack.data['options']['features']]
-            self.add_lines(lines)
+            self.add_lines([
+                _pack.get_data('options').get('pattern').format(*values)
+                for values in _pack.get_data('options').get('features')
+            ])
 
     def set(self, _pack=None, _path=None, **kwargs):
-        objectives = [] if 'objectives' not in _pack.data else _pack.data['objectives']
+        objectives = [] if 'objectives' not in _pack.data else _pack.get_data('objectives')
         names = [_name.split(' ')[0] for _name in objectives if _name.split(' ')[1] == 'trigger']
         self.add_lines(['scoreboard players ' + op[0:].format(_name) for op in self.operations for _name in names])
         super().set()

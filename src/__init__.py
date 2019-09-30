@@ -297,16 +297,16 @@ class DataPacker(DataPack):
 
     def process_data(self):
         self.__load_dependencies()
-        for tag in self.__try_data('function_tags', []):
+        for tag in self.get_data('function_tags', []):
             self[tag] = FunctionTag()
-        self.functions['load'] = Load(self, self.__try_data('objectives', []))
-        function_data = self.__try_data('functions', [])
+        self.functions['load'] = Load(self, self.get_data('objectives', []))
+        function_data = self.get_data('functions', [])
         if function_data:
             for rel_path in function_data:
                 self.functions.add(rel_path)
 
     def recipes(self):
-        recipes = self.__try_data('recipes', [])
+        recipes = self.get_data('recipes', [])
         if not recipes:
             return
         self['recipes/root'] = Advancement(
@@ -325,7 +325,7 @@ class DataPacker(DataPack):
                 key={alphabet_keys[i]: get_ingredient(self, d) for i, d in enumerate(data[1])} if shaped else None,
                 ingredients=[get_ingredient(self, _id) for _id in data[1]] if not shaped else None
             )
-            if self.__try_data('recipe_advancement', False):
+            if self.get_data('recipe_advancement', False):
                 title = 'Craftable ' + get_name(icon_id)
                 advancement = Advancement(
                     parent=self.namespaced('recipes/root'),
@@ -340,7 +340,7 @@ class DataPacker(DataPack):
     def __load_dependencies(self):
         log = get_logger(self.log, 'dependencies')
         self.packs = {}
-        dependencies = self.__try_data('dependencies', [])
+        dependencies = self.get_data('dependencies', [])
         for key in dependencies:
             self.packs.setdefault(key, DataPacker.load(
                 key,
@@ -351,7 +351,7 @@ class DataPacker(DataPack):
         if dependencies:
             log.info('Complete')
 
-    def __try_data(self, _name, default):
+    def get_data(self, _name, default):
         try:
             return self.data[_name]
         except (KeyError, TypeError) as e:
