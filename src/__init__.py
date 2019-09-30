@@ -364,6 +364,7 @@ class DataPacker(DataPack):
 
     def get_data(self, _name):
         try:
+            self.data.setdefault(_name, DataPacker.data_defaults[_name])
             return self.data[_name]
         except (KeyError, TypeError) as e:
             self.log.debug(DataPacker.data_errors[e.__class__.__name__], e)
