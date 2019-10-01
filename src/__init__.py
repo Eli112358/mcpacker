@@ -2,6 +2,7 @@ import logging
 import sys
 import time
 import zipfile
+from collections import OrderedDict
 
 import dill as pickle
 from mcpack import (
@@ -16,6 +17,7 @@ from mcpack import (
 from .functions import *
 from .items import *
 from .namespaced import Namespaced
+from .shared_trigger import SharedTrigger
 
 alphabet_keys = 'abcdefghi'
 max_load_milliseconds = get_env_var('max_load_milliseconds', 500)
@@ -112,6 +114,7 @@ class DataPacker(DataPack):
         self.data = self.load_data(self.name)
         self.functions = Functions()
         self.functions['tick'] = Tick(self)
+        self.shared_triggers = {}
         if self.auto_process_data:
             self.log.debug('Auto processing data')
             self.process_data()
@@ -149,10 +152,11 @@ class DataPacker(DataPack):
     def dump(self, **kwargs):
         log = get_logger(self.log, 'dump')
         log.info('Starting...')
-        lambdas = {
-            'functions': lambda: self.functions.set(self),
-            'recipes': lambda: self.recipes()
-        }
+        lambdas = OrderedDict([
+            ('shared_triggers', lambda: [trigger.set() for _, trigger in self.shared_triggers.items()]),
+            ('functions', lambda: self.functions.set(self)),
+            ('recipes', lambda: self.recipes())
+        ])
         for _name, _lambda in lambdas.items():
             log.debug(_name.capitalize())
             try:
@@ -307,6 +311,8 @@ class DataPacker(DataPack):
         return self
 
     def process_data(self):
+        for _name, data in self.get_data('shared_triggers').items():
+            self.shared_triggers[_name] = SharedTrigger(self, _name, **data)
         self.__load_dependencies()
         for tag in self.get_data('function_tags'):
             self[tag] = FunctionTag()
