@@ -97,6 +97,7 @@ class DataPacker(DataPack):
         'auto_process_data': True,
         'compress': True,
         'dependencies_dir': pathlib.Path('out'),
+        'log_level': 0,
         'output_path': pathlib.Path('out'),
         'overwrite': True,
         'required_data': [],
@@ -111,6 +112,7 @@ class DataPacker(DataPack):
         self.tag = GlobalName(self.name)
         for key, value in DataPacker.defaults.items():
             setattr(self, key, kwargs.get(key, value))
+        self.log.setLevel(self.log_level)
         self.data = self.load_data(self.name)
         self.functions = Functions()
         self.functions['tick'] = Tick(self)
