@@ -57,8 +57,6 @@ class Functions(dict):
                 self[_path].add_lines(data_lines1(_object, _path, _entry))
 
     def load(self, _pack):
-        if 'function_code' not in _pack.data:
-            return
         for _path, lines in _pack.get_data('function_code').items():
             self[_path].add_lines(lines)
 
