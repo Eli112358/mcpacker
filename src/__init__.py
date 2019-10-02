@@ -17,6 +17,7 @@ from mcpack import (
 from .functions import *
 from .items import *
 from .namespaced import Namespaced
+from .order_form import OrderForm
 from .shared_trigger import SharedTrigger
 
 alphabet_keys = 'abcdefghi'
@@ -89,6 +90,7 @@ class DataPacker(DataPack):
         'functions': [],
         'objectives': [],
         'options': {},
+        'order_forms': {},
         'recipe_advancement': False,
         'recipes': [],
         'shared_triggers': {}
@@ -311,6 +313,12 @@ class DataPacker(DataPack):
             end = time.time()
             log.info(duration(start, end))
         return self
+
+    def order_forms(self, get_item, villager):
+        order_forms = {key: OrderForm.parse(data, get_item) for key, data in self.get_data('order_forms').items()}
+        for action in ['completed', 'purchase', 'progress']:
+            for _, form in order_forms.items():
+                getattr(form, action)(villager)
 
     def process_data(self):
         for _name, data in self.get_data('shared_triggers').items():

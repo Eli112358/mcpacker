@@ -68,6 +68,10 @@ class OrderForm:
         while not self.stages[-1].complete:
             self.stages.append(self.stages[-1].next())
 
+    @classmethod
+    def parse(cls, data, get_item):
+        return cls(data[0], get_item(data[1]), [get_item(entry) for entry in data[2]])
+
     def completed(self, villager):
         villager.trades.append(self.stages[-1].get_trade())
 
