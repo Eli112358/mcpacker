@@ -126,7 +126,7 @@ class Item:
     def __init__(self, _id, count=1, nbt=None):
         if count < 1:
             raise ValueError('Count must be more than 0')
-        self.id = str(Namespaced(_id))
+        self.id = Namespaced(_id)
         self.count = count
         self.nbt = nbt
 
@@ -134,12 +134,12 @@ class Item:
         if self.nbt:
             if 'display' in self.nbt:
                 if 'Name' in self.nbt['display']:
-                    return get_name(serialize_tag(self.nbt['display']['Name']))
-        return get_name(self.id)
+                    return get_name(self.nbt['display']['Name'].strip('"').strip(r'\"'))
+        return get_name(self.id.str)
 
     def stack(self, count=0, clone=True, fixed=True):
         if count == 0:
-            return min(self.count, self.stack(fixed=False)) if fixed else get_max_stack(self.id)
+            return min(self.count, self.stack(fixed=False)) if fixed else get_max_stack(self.id.str)
         fixed_count = count if not fixed else min(count, self.stack(fixed=False))
         if clone:
             item = copy.deepcopy(self)
@@ -161,7 +161,7 @@ class Item:
         return nbt_str.replace('\\\\', '\\').replace("'", '')
 
     def loot(self):
-        entry = get_entry(name=self.id)
+        entry = get_entry(name=self.id.str)
         entry['functions'] = []
 
         def add_function(value, name, f_name=None):
@@ -176,7 +176,7 @@ class Item:
         return entry
 
     def trade(self):
-        return f'id:{quote(self.id)},Count:{self.stack()}' + ((',tag:' + self.__get_fixed_nbt()) if self.nbt else '')
+        return f'id:{quote(str(self.id))},Count:{self.stack()}' + ((',tag:' + self.__get_fixed_nbt()) if self.nbt else '')
 
     def give(self):
         return self.id + self.__get_fixed_nbt() + (' ' + str(self.count) if self.count > 1 else '')

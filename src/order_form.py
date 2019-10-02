@@ -3,7 +3,7 @@ from .villager import Trade
 
 
 def get_quantity(item):
-    _max = get_max_stack(item.id)
+    _max = get_max_stack(item.id.str)
     if _max is 1:
         return str(item.count)
     remainder = int(item.count % _max)
