@@ -61,7 +61,7 @@ class OrderForm:
     def __init__(self, price, result, requirements=None):
         if requirements is None:
             requirements = []
-        self.price = BankNote(price[0], value=price[1])
+        self.price = BankNote.parse(price)
         self.result = result
         self.requirements = requirements
         self.stages = [Stage(self.result, self.requirements[0:])]
