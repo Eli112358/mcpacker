@@ -19,8 +19,8 @@ def get_quantity(item):
 
 class Stage(Item):
     def __init__(self, result, items):
-        nbt = Compound(dict(Display=dict(
-            Name=custom_name(f'Order Form: {result.get_name()}'),
+        nbt = Compound(dict(display=dict(
+            Name=custom_name('Order Form: ' + result.get_name()),
             Lore=List[String]([
                 'Official Order Form',
                 'Required items:'
@@ -33,12 +33,12 @@ class Stage(Item):
         self.next_stage = None
         self.complete = len(items) == 0
         if server_name:
-            self.nbt.display.lore[0][0] += f' of {server_name}'
+            self.nbt['display']['Lore'][0][0] += f' of {server_name}'
         if self.complete:
-            self.nbt.display.custom_name = 'Completed ' + self.nbt.display.custom_name
-            self.nbt.display.lore[1] = ['Complete!']
+            self.nbt['display']['Name'] = custom_name('Completed ' + self.get_name())
+            self.nbt['display']['Lore'][1] = 'Complete!'
         for item in self.items:
-            self.nbt.display.lore.append([f' - {get_quantity(item)}: {item.get_name()}'])
+            self.nbt['display']['Lore'].append(f' - {get_quantity(item)}: {item.get_name()}')
 
     def next(self):
         next_items = self.items[0:]
@@ -61,7 +61,7 @@ class OrderForm:
     def __init__(self, price, result, requirements=None):
         if requirements is None:
             requirements = []
-        self.price = BankNote.parse(price)
+        self.price = BankNote.parse(price)[0]
         self.result = result
         self.requirements = requirements
         self.stages = [Stage(self.result, self.requirements[0:])]
