@@ -131,9 +131,10 @@ class Item:
         self.nbt = nbt
 
     def get_name(self):
-        if 'display' in self.nbt:
-            if 'Name' in self.nbt['display']:
-                return get_name(serialize_tag(self.nbt['display']['Name']))
+        if self.nbt:
+            if 'display' in self.nbt:
+                if 'Name' in self.nbt['display']:
+                    return get_name(serialize_tag(self.nbt['display']['Name']))
         return get_name(self.id)
 
     def stack(self, count=0, clone=True, fixed=True):
