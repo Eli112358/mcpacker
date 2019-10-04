@@ -124,6 +124,16 @@ class DataPacker(DataPack):
             self.process_data()
         self.log.info('Initialized')
 
+    def __getitem__(self, item):
+        if item in self.namespaces:
+            return self.namespaces[item]
+        ns_item = self.namespaced(item)
+        obj_type = ns_item.value.parts[0]
+        obj_dict = getattr(self.namespaces[ns_item.namespace], obj_type)
+        if len(ns_item.value.parts) == 1:
+            return obj_dict
+        return obj_dict[str(ns_item.value.relative_to(obj_type))]
+
     def __setitem__(self, key, value):
         super().__setitem__(str(self.namespaced(key)), value)
 
