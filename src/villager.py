@@ -58,8 +58,9 @@ class Villager:
             quote(Namespaced('empty')),
             get_list(lambda v: v.dump(), self.trades)
         ]
-        _path = tag_name + '/' + self.name
+        tag_ns_id = Namespaced(tag_name, root_name)
+        _path = tag_ns_id / self.name
         _pack[_path] = Function(self.template.format(*values))
-        if tag_name not in _pack[root_name].function_tags:
-            _pack[Namespaced(tag_name, root_name)] = FunctionTag()
-        _pack[root_name].function_tags[tag_name].values.append(_pack.namespaced(_path))
+        if tag_name not in _pack[tag_ns_id.type_only('function_tags')]:
+            _pack[tag_ns_id] = FunctionTag()
+        _pack[tag_ns_id.typed('function_tags')].values.append(_path)

@@ -141,9 +141,9 @@ class DataPacker(DataPack):
         self.create_function_tag(tag_path).values.append(self.namespaced(function_path))
 
     def create_function_tag(self, path):
-        if path.str not in self[path.namespace].function_tags:
+        if path.str not in self[path.type_only('function_tags')]:
             self[path] = FunctionTag()
-        return self[path.namespace].function_tags[path.str]
+        return self[path.typed('function_tags')]
 
     def add_pool(self, _path, pool):
         get_logger(self.log, 'add_pool').debug(_path)
@@ -156,9 +156,9 @@ class DataPacker(DataPack):
         log.debug(str(path))
         for _name, _pack in self.packs.items():
             log.debug(_name)
-            if path.namespace in _pack.namespaces and path.str in _pack[path.namespace].loot_tables:
+            if path.namespace in _pack.namespaces and path.str in _pack[path.type_only('loot_tables')]:
                 log.debug(f'Found in {_name}')
-                self[path] = copy.deepcopy(_pack[path.namespace].loot_tables[path.str])
+                self[path] = copy.deepcopy(_pack[path.typed('loot_tables')])
                 return self.get_loot_table(path)
         log.warning(f'Loot table not found: {str(path)}')
         return LootTable()
@@ -230,10 +230,9 @@ class DataPacker(DataPack):
         path = Namespaced(_path)
         log.debug(str(path))
         for _name, _pack in self.packs.items():
-            log.debug(_name)
-            if path.namespace in _pack.namespaces and path.str in _pack[path.namespace].loot_tables:
+            if path.namespace in _pack.namespaces and path.str in _pack[path.type_only('loot_tables')]:
                 log.debug(f'Found in {_name}')
-                return _pack[path.namespace].loot_tables[path.str]
+                return _pack[path.typed('loot_tables')]
         self.log.warning('Loot table not found: ' + str(path))
         return LootTable()
 

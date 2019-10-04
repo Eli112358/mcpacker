@@ -30,3 +30,9 @@ class Namespaced:
 
     def parent(self):
         return Namespaced('/'.join(str(self).split('/')[:-1]))
+
+    def typed(self, _type):
+        return self.type_only(_type) / self.str
+
+    def type_only(self, _type):
+        return Namespaced(_type, self.namespace)
