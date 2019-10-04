@@ -219,9 +219,6 @@ class DataPacker(DataPack):
         log.debug(_path)
         path = Namespaced(_path)
         log.debug(str(path))
-        if path.namespace in self.namespaces and path.str in self[path.namespace].loot_tables:
-            log.debug('Found in self')
-            return self[path.namespace].loot_tables[path.str]
         for _name, _pack in self.packs.items():
             log.debug(_name)
             if path.namespace in _pack.namespaces and path.str in _pack[path.namespace].loot_tables:
@@ -366,15 +363,11 @@ class DataPacker(DataPack):
 
     def __load_dependencies(self):
         log = get_logger(self.log, 'dependencies')
-        self.packs = {}
+        self.packs = OrderedDict()
         dependencies = self.get_data('dependencies')
+        self.packs.setdefault('self', self)
         for key in dependencies:
-            self.packs.setdefault(key, DataPacker.load(
-                key,
-                log,
-                self.use_pickle,
-                self.dependencies_dir
-            ))
+            self.packs.setdefault(key, DataPacker.load(key, log, self.use_pickle, self.dependencies_dir))
         if dependencies:
             log.info('Complete')
 
