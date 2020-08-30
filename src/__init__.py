@@ -248,13 +248,18 @@ class DataPacker(DataPack):
         log = get_logger(logger, 'load')
         if not load_dir:
             load_dir = pathlib.Path('out')
+        src = load_dir / _name
         if use_pickle:
-            self = cls.unpickle(pathlib.Path('pickle') / (_name + '.pickle'), log)
+            src = pathlib.Path('pickle') / (_name + '.pickle')
+            self = cls.unpickle(src, log)
             if self is not None:
                 return self
+        if zipfile.is_zipfile(src + '.zip'):
+            if not os.path.exists(src):
+                zipfile.ZipFile(src + '.zip').extractall(src)
         log.info(f"Loading '{_name}' ...")
         start = time.time()
-        self = DataPacker.cast(DataPack.load(load_dir / _name))
+        self = DataPacker.cast(DataPack.load(src))
         end = time.time()
         log.info(duration(start, end))
         if (end - start) * 1000 > max_load_milliseconds and use_pickle:
