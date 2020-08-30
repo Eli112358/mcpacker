@@ -14,12 +14,12 @@ setup(
         'deprecated',
         'dill',
         'mcpack',
-        'nbtlib'
+        'nbtlib',
     ],
     provides=['mcpacker'],
     package_data={'mcpacker': ['data/*.json']},
     classifiers=[
-        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent'
     ]

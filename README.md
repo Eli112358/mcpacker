@@ -13,7 +13,7 @@ pack.dump()
 
 ## Installation
 
-Using python 3.7 or high, it can be installed with ```pip```
+Using python 3.8 or high, it can be installed with ```pip```
 
 _Currently only available from the TestPyPi instance of the Python Package Index_
 
