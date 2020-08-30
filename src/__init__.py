@@ -147,21 +147,11 @@ class DataPacker(DataPack):
 
     def add_pool(self, _path, pool):
         get_logger(self.log, 'add_pool').debug(_path)
-        self.copy_loot_table(_path).pools.append(pool)
+        self.get_kind(_path, LootTable, True).pools.append(pool)
 
+    @deprecated(version='0.11.0', reason='Generalized to get_kind')
     def copy_loot_table(self, _path):
-        log = get_logger(self.log, 'copy_loot_table')
-        log.debug(_path)
-        path = Namespaced(_path)
-        log.debug(str(path))
-        for _name, _pack in self.packs.items():
-            log.debug(_name)
-            if path.namespace in _pack.namespaces and path.str in _pack[path.type_only('loot_tables')]:
-                log.debug(f'Found in {_name}')
-                self[path] = copy.deepcopy(_pack[path.typed('loot_tables')])
-                return self.get_loot_table(path)
-        log.warning(f'Loot table not found: {str(path)}')
-        return LootTable()
+        return self.get_kind(_path, LootTable, True)
 
     def dump(self, **kwargs):
         log = get_logger(self.log, 'dump')
@@ -224,17 +214,29 @@ class DataPacker(DataPack):
             criteria=self.adv.criteria_impossible()
         )
 
+    @deprecated(version='0.11.0', reason='Generalized to get_kind')
     def get_loot_table(self, _path):
-        log = get_logger(self.log, 'get_loot_table')
-        log.debug(_path)
-        path = Namespaced(_path)
-        log.debug(str(path))
-        for _name, _pack in self.packs.items():
-            if path.namespace in _pack.namespaces and path.str in _pack[path.type_only('loot_tables')]:
-                log.debug(f'Found in {_name}')
-                return _pack[path.typed('loot_tables')]
-        self.log.warning('Loot table not found: ' + str(path))
-        return LootTable()
+        return self.get_kind(_path, LootTable)
+
+    def get_kind(self, path, kind, do_copy=False):
+        kind_single = kind.folder
+        if kind_single[-1] == 's':
+            kind_single = kind_single[:-1]
+        log = get_logger(self.log, f'get_{kind_single}')
+        log.debug(path)
+        ns_path = Namespaced(path)
+        log.debug(str(ns_path))
+        for name, pack in self.packs.items():
+            log.debug(name)
+            if ns_path.namespace in pack.namespaces and ns_path.str in pack[ns_path.type_only(kind.folder)]:
+                log.debug(f'Found in {name}')
+                if do_copy:
+                    self[ns_path] = copy.deepcopy(pack[ns_path.typed(kind.folder)])
+                    return self[ns_path]
+                return pack[ns_path.typed(kind.folder)]
+        display = kind_single.replace('_', ' ').capitalize()
+        self.log.warning(f'{display} not found: {str(ns_path)}')
+        return kind()
 
     @classmethod
     def cast(cls, _pack):
@@ -254,9 +256,10 @@ class DataPacker(DataPack):
             self = cls.unpickle(src, log)
             if self is not None:
                 return self
-        if zipfile.is_zipfile(src + '.zip'):
+        src_zip = f'{src}.zip'
+        if zipfile.is_zipfile(src_zip):
             if not os.path.exists(src):
-                zipfile.ZipFile(src + '.zip').extractall(src)
+                zipfile.ZipFile(src_zip).extractall(src)
         log.info(f"Loading '{_name}' ...")
         start = time.time()
         self = DataPacker.cast(DataPack.load(src))
