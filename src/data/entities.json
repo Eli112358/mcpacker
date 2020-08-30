@@ -4,6 +4,7 @@
 		"cow",
 		"donkey",
 		"fox",
+		"hoglin",
 		"horse",
 		"llama",
 		"mule",
@@ -40,20 +41,33 @@
 		"endermite",
 		"ghast",
 		"guardian",
+		"hoglin",
 		"magma_cube",
 		"phantom",
+		"piglin",
+		"piglin_brute",
 		"shulker",
 		"silverfish",
 		"slime",
 		"spider",
 		"vex",
-		"witch"
+		"witch",
+		"zoglin"
 	],
 	"illager": [
 		"evoker",
 		"pillager",
 		"ravager",
 		"vindicator"
+	],
+	"nether": [
+		"hoglin",
+		"piglin",
+		"piglin_brute",
+		"strider",
+		"wither_skeleton",
+		"zoglin",
+		"zombified_piglin"
 	],
 	"skeleton": [
 		"skeleton",
@@ -66,15 +80,15 @@
 		"skeleton",
 		"stray",
 		"wither_skeleton",
-		"zombie_pigman",
 		"zombie_villager",
-		"zombie"
+		"zombie",
+		"zombified_piglin"
 	],
 	"zombie": [
 		"drowned",
 		"husk",
-		"zombie_pigman",
 		"zombie_villager",
-		"zombie"
+		"zombie",
+		"zombified_piglin"
 	]
 }
