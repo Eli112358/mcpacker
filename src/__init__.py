@@ -11,7 +11,7 @@ from mcpack import (
     FunctionTag,
     LootTable,
     Recipe,
-    Structure
+    Structure,
 )
 
 from .functions import *
@@ -361,7 +361,7 @@ class DataPacker(DataPack):
             if self.get_data('recipe_advancement'):
                 title = 'Craftable ' + get_name(icon_id)
                 advancement = Advancement(
-                    parent=self.namespaced('recipes/root'),
+                    parent=self.namespaced('recipes/root').value,
                     rewards=self.adv.rewards([['recipes', [_path]]]),
                     display=self.adv.display(icon_id, title, title),
                     criteria=self.adv.criteria_have_items(data[1])

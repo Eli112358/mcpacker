@@ -52,6 +52,7 @@ class Functions(dict):
 
         def data_lines1(_object, _path, entry):
             return [data_lines(_path, _object, entry, i) for i in range(data_range(_object, entry))]
+
         for _path, _object in _pack.get_data('function_templates').items():
             for _entry in _object['data']:
                 self[_path].add_lines(data_lines1(_object, _path, _entry))
